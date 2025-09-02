@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/notification_service.dart';
-import 'package:jamat_time/screens/home_screen.dart';
+import 'package:jamat_time/screens/main_screen.dart'; // <-- Point to the new main screen
 import 'package:jamat_time/theme_provider.dart';
 
 void main() async {
-  // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  // Initialize notification service
   await NotificationService().init();
   runApp(
     ChangeNotifierProvider(
@@ -27,10 +25,10 @@ class JamatTimeApp extends StatelessWidget {
         return MaterialApp(
           title: 'Jamat Time',
           debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme, // Define light theme
-          darkTheme: AppTheme.darkTheme, // Define dark theme
-          themeMode: themeProvider.themeMode, // Control theme
-          home: const HomeScreen(),
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const MainScreen(), // <-- The new home widget
         );
       },
     );

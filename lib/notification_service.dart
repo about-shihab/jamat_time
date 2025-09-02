@@ -3,65 +3,47 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 class NotificationService {
-  static final NotificationService _notificationService = NotificationService._internal();
-
-  factory NotificationService() {
-    return _notificationService;
-  }
-
+  static final NotificationService _instance = NotificationService._internal();
+  factory NotificationService() => _instance;
   NotificationService._internal();
 
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
   Future<void> init() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
+    const AndroidInitializationSettings androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+    const InitializationSettings settings = InitializationSettings(android: androidSettings);
 
     tz.initializeTimeZones();
+    await _notificationsPlugin.initialize(settings);
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-    // Request permissions for Android 13+
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
-
+    await _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+    await _notificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestExactAlarmsPermission();
   }
 
   Future<void> scheduleNotification(String prayerName, DateTime prayerTime, int minutesBefore) async {
     final scheduleTime = prayerTime.subtract(Duration(minutes: minutesBefore));
     
-    // Ensure the notification is for a future time
-    if (scheduleTime.isBefore(DateTime.now())) {
-      print("Cannot schedule a notification for a past time.");
-      return;
-    }
+    if (scheduleTime.isBefore(DateTime.now())) return;
     
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      0,
-      '$prayerName Jamat Reminder',
-      'Jamat for $prayerName is in $minutesBefore minutes!',
+    await _notificationsPlugin.zonedSchedule(
+      prayerTime.hashCode,
+      'Jamat Reminder',
+      '$prayerName Jamat is in $minutesBefore minutes!',
       tz.TZDateTime.from(scheduleTime, tz.local),
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'jamat_time_channel',
           'Jamat Time Reminders',
-          channelDescription: 'Channel for Jamat time prayer reminders',
+          channelDescription: 'Reminders for congregational prayer times',
           importance: Importance.max,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 }

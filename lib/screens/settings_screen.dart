@@ -11,20 +11,25 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Settings'),
       ),
-      body: Padding(
+      body: ListView(
         padding: const EdgeInsets.all(16.0),
-        child: Consumer<ThemeProvider>(
-          builder: (context, themeProvider, child) {
-            return SwitchListTile.adaptive(
-              title: const Text('Dark Mode'),
-              subtitle: const Text('Enable to switch to the dark theme'),
-              value: themeProvider.isDarkMode,
-              onChanged: (value) {
-                themeProvider.toggleTheme(value);
-              },
-            );
-          },
-        ),
+        children: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return Card(
+                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                 child: SwitchListTile(
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  title: Text('Dark Mode', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16)),
+                  value: themeProvider.isDarkMode,
+                  onChanged: (value) {
+                    themeProvider.toggleTheme(value);
+                  },
+                 ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }
