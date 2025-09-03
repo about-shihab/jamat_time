@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/notification_service.dart';
-import 'package:jamat_time/screens/main_screen.dart'; // <-- Point to the new main screen
+import 'package:jamat_time/screens/landing_screen.dart';
 import 'package:jamat_time/theme_provider.dart';
 
 void main() async {
@@ -28,7 +28,7 @@ class JamatTimeApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const MainScreen(), // <-- The new home widget
+          home: const LandingScreen(),
         );
       },
     );

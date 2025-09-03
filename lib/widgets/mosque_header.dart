@@ -8,29 +8,30 @@ class MosqueHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor.withOpacity(0.5),
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).cardColor,
+            Theme.of(context).cardColor.withOpacity(0.7),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.mosque_outlined, size: 40, color: Theme.of(context).hintColor),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  mosque.name,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 20),
-                ),
-                Text(
-                  mosque.address,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
+          Text(
+            mosque.name,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            mosque.address,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
       ),
