@@ -54,12 +54,9 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
               ),
             ),
           ),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 500),
-            child: _favoriteMosque == null
-                ? ScanView(onMosqueFavorited: onMosqueFavorited)
-                : MainScreen(favoriteMosque: _favoriteMosque!),
-          ),
+          _favoriteMosque == null
+              ? ScanView(onMosqueFavorited: onMosqueFavorited)
+              : MainScreen(favoriteMosque: _favoriteMosque!),
         ],
       ),
     );

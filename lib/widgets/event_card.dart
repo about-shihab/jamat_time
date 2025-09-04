@@ -60,7 +60,7 @@ class _EventCardState extends State<EventCard> {
                 ElevatedButton.icon(
                   onPressed: _toggleGoing,
                   icon: Icon(widget.event.isUserGoing ? Icons.check_circle : Icons.add_circle_outline, size: 20),
-                  label: Text(widget.event.isUserGoing ? "You're Going" : 'I am Going'),
+                  label: Text(widget.event.isUserGoing ? "You're Going" : 'Insha\'Allah, I will go'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: widget.event.isUserGoing ? Theme.of(context).hintColor : Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,
