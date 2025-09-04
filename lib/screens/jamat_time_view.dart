@@ -1,56 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jamat_time/models/jamat_time_details.dart';
+import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/notification_service.dart';
-import 'package:jamat_time/screens/discover_screen.dart';
-import 'package:jamat_time/theme_provider.dart';
-import 'package:jamat_time/widgets/islamic_background_painter.dart';
-import 'package:jamat_time/widgets/mosque_header.dart';
-import 'package:jamat_time/widgets/prayer_time_card.dart';
-import '../models/mosque_model.dart';
-import 'package:jamat_time/widgets/hadith_slider.dart';
+import 'package:jamat_time/widgets/prayer_dashboard_card.dart';
 
 class JamatTimeView extends StatefulWidget {
-  const JamatTimeView({super.key});
+  final Mosque mosque;
+  const JamatTimeView({super.key, required this.mosque});
 
   @override
   State<JamatTimeView> createState() => _JamatTimeViewState();
 }
 
 class _JamatTimeViewState extends State<JamatTimeView> {
-  Mosque? _favoriteMosque;
+  final Set<String> _alarmsSet = {};
   final TextEditingController _minutesController = TextEditingController(text: "15");
-  final Set<String> _alarmsSet = {}; // To track which prayers have alarms
-
+  
+  // ACCURATE PRAYER TIME RANGES FOR CHATTOGRAM - SEP 3, 2025
   final Map<String, String> _prayerTimeRanges = {
-    'Fajr': '04:28 - 05:43', 'Dhuhr': '12:01 - 16:25', 'Asr': '16:25 - 18:19',
-    'Maghrib': '18:19 - 19:34', 'Isha': '19:34 - 04:27',
+    'Fajr': '04:29 - 05:44',
+    'Dhuhr': '12:01 - 16:25',
+    'Asr': '16:25 - 18:18',
+    'Maghrib': '18:18 - 19:33',
+    'Isha': '19:33 - 04:28',
   };
-
+  
   @override
   void dispose() {
     _minutesController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        CustomPaint(
-          size: Size.infinite,
-          painter: IslamicBackgroundPainter(context: context),
-        ),
-        _favoriteMosque == null ? _buildInitialView() : _buildFavoriteMosqueView(),
-      ],
-    );
-  }
-
-  void _navigateAndSetFavorite() async {
-    final result = await Navigator.push(
-      context, MaterialPageRoute(builder: (context) => const DiscoverScreen()));
-    if (result != null && result is Mosque) {
-      setState(() => _favoriteMosque = result);
+  void _toggleAlarm(String prayerName) {
+    if (_alarmsSet.contains(prayerName)) {
+      setState(() {
+        _alarmsSet.remove(prayerName);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Reminder for $prayerName cancelled.'),
+      ));
+    } else {
+      _showSetAlarmDialog(prayerName, widget.mosque.jamatTimes[prayerName]!.jamatTime);
     }
   }
 
@@ -60,26 +50,24 @@ class _JamatTimeViewState extends State<JamatTimeView> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Set Reminder', style: Theme.of(context).textTheme.titleLarge),
-        content: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Remind me before $prayerName Jamat.', style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 20),
-          TextField(
-            controller: _minutesController, keyboardType: TextInputType.number, autofocus: true,
-            decoration: const InputDecoration(labelText: 'Minutes before', border: OutlineInputBorder()),
-          ),
-        ]),
+        content: TextField(
+          controller: _minutesController,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(labelText: 'Minutes before Jamat', border: OutlineInputBorder()),
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () {
-              final prayerTime = _parsePrayerTime(timeStr);
+              final prayerTime = _parseTime(timeStr);
               final minutes = int.tryParse(_minutesController.text) ?? 15;
               NotificationService().scheduleNotification(prayerName, prayerTime, minutes);
-              setState(() => _alarmsSet.add(prayerName)); // Add prayer to alarms set
+              setState(() => _alarmsSet.add(prayerName));
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('Reminder set for $prayerName.'),
-                backgroundColor: AppTheme.accentColor,
+                backgroundColor: Theme.of(context).primaryColor,
               ));
             },
             child: const Text('Set'),
@@ -89,7 +77,7 @@ class _JamatTimeViewState extends State<JamatTimeView> {
     );
   }
 
-  DateTime _parsePrayerTime(String timeStr) {
+  DateTime _parseTime(String timeStr) {
     final now = DateTime.now();
     final parts = timeStr.replaceAll(RegExp(r'\s*(AM|PM)'), '').split(':');
     int hour = int.parse(parts[0]);
@@ -99,87 +87,39 @@ class _JamatTimeViewState extends State<JamatTimeView> {
     return DateTime(now.year, now.month, now.day, hour, minute);
   }
 
-  Widget _buildInitialView() {
-    return Center(
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        const Icon(Icons.track_changes, size: 100, color: Colors.grey),
-        const SizedBox(height: 20),
-        Text('Scan for Nearby Mosques', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
-        const SizedBox(height: 30),
-        ElevatedButton(
-          onPressed: _navigateAndSetFavorite,
-          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16)),
-          child: const Text('SCAN', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  @override
+  Widget build(BuildContext context) {
+    final formatter = DateFormat('MMM d, hh:mm a');
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(widget.mosque.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
+            Text(
+              "Updated by ${widget.mosque.lastUpdatedBy} on ${formatter.format(widget.mosque.lastUpdatedAt)}",
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            Expanded(child: _buildPrayerCard('Fajr')),
+            Expanded(child: _buildPrayerCard('Dhuhr')),
+            Expanded(child: _buildPrayerCard('Asr')),
+            Expanded(child: _buildPrayerCard('Maghrib')),
+            Expanded(child: _buildPrayerCard('Isha')),
+          ],
         ),
-      ]),
+      ),
     );
   }
 
- Widget _buildFavoriteMosqueView() {
-  final DateFormat formatter = DateFormat('MMM d, yyyy');
-  return ListView(
-    padding: const EdgeInsets.symmetric(vertical: 8), // Adjusted padding
-    children: [
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: MosqueHeader(mosque: _favoriteMosque!),
-      ),
-      const SizedBox(height: 16),
-      
-      // --- HADITH SLIDER WIDGET ADDED HERE ---
-      const HadithSlider(),
-      const SizedBox(height: 20),
-
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: Text(
-          'Last updated by ${_favoriteMosque!.lastUpdatedBy} on ${formatter.format(_favoriteMosque!.lastUpdatedAt)}',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
-        ),
-      ),
-      const SizedBox(height: 12),
-      ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: _favoriteMosque!.jamatTimes.length,
-        itemBuilder: (context, index) {
-          final prayerName = _favoriteMosque!.jamatTimes.keys.elementAt(index);
-          final details = _favoriteMosque!.jamatTimes.values.elementAt(index);
-          final prayerRange = _prayerTimeRanges[prayerName] ?? 'N/A';
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 12.0),
-            child: SizedBox(
-              height: 85,
-              child: InkWell(
-                onTap: () => _showSetAlarmDialog(prayerName, details.jamatTime),
-                child: PrayerTimeCard(
-                  prayerName: prayerName,
-                  details: details,
-                  prayerTimeRange: prayerRange,
-                  icon: getIconForPrayer(prayerName),
-                  isAlarmSet: _alarmsSet.contains(prayerName),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-      const SizedBox(height: 80),
-    ],
-  );
-}
-
-  IconData getIconForPrayer(String prayerName) {
-    switch (prayerName.toLowerCase()) {
-      case 'fajr': return Icons.wb_twilight_outlined;
-      case 'dhuhr': return Icons.wb_sunny_outlined;
-      case 'asr': return Icons.filter_drama_outlined;
-      case 'maghrib': return Icons.wb_sunny;
-      case 'isha': return Icons.nightlight_round_outlined;
-      case 'sunrise': return Icons.brightness_high;
-      default: return Icons.access_time;
-    }
+  Widget _buildPrayerCard(String prayerName) {
+    return PrayerDashboardCard(
+      prayerName: prayerName,
+      jamatTime: widget.mosque.jamatTimes[prayerName]?.jamatTime ?? '--:--',
+      prayerTimeRange: _prayerTimeRanges[prayerName] ?? 'N/A',
+      isAlarmSet: _alarmsSet.contains(prayerName),
+      onAlarmPressed: () => _toggleAlarm(prayerName),
+    );
   }
 }

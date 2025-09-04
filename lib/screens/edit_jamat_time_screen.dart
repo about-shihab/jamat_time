@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
-import 'package:jamat_time/theme_provider.dart';
 
 class EditJamatTimeScreen extends StatefulWidget {
   final Mosque mosque;
@@ -21,15 +20,12 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> {
   void initState() {
     super.initState();
     final times = widget.mosque.jamatTimes;
-    // CORRECTED: Access the .jamatTime property from the details object
     _fajrController = TextEditingController(text: times['Fajr']?.jamatTime ?? '');
     _dhuhrController = TextEditingController(text: times['Dhuhr']?.jamatTime ?? '');
     _asrController = TextEditingController(text: times['Asr']?.jamatTime ?? '');
     _maghribController = TextEditingController(text: times['Maghrib']?.jamatTime ?? '');
     _ishaController = TextEditingController(text: times['Isha']?.jamatTime ?? '');
   }
-  
-  // ... (The rest of the file remains the same)
 
   @override
   void dispose() {
@@ -43,18 +39,14 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> {
 
   void _saveTimes() {
     // In a real app, you would save this data to your database.
-    // Here, we just simulate it with a confirmation.
-    print('Saving times for ${widget.mosque.name}');
-    print('Fajr: ${_fajrController.text}');
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('JazakAllah Khair! Times submitted successfully.'),
-        backgroundColor: AppTheme.accentColor,
+        // FIX: Using the correct theme property
+        backgroundColor: Theme.of(context).primaryColor,
       ),
     );
     
-    // Pop twice to go back to the home screen
     int count = 0;
     Navigator.of(context).popUntil((_) => count++ >= 2);
   }
