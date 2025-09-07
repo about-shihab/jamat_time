@@ -26,7 +26,6 @@ class _HomeViewState extends State<HomeView> {
       // FIX: AppBar is now customized for the Home screen
       appBar: CustomAppBar(
         title: widget.favoriteMosque.name,
-        showHadith: true,
       ),
       body: SafeArea(
         child: ListView(

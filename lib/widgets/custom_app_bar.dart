@@ -5,93 +5,112 @@ import 'package:jamat_time/theme_provider.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String? title;
-  final bool showHadith;
+  final VoidCallback? onRescanPressed; // Callback for the rescan action
 
   const CustomAppBar({
     super.key,
     this.title,
-    this.showHadith = false, // Defaults to not showing the hadith
+    this.onRescanPressed,
   });
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight + (showHadith ? 30.0 : 0.0));
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
-  int _hadithIndex = 0;
-  Timer? _timer;
-
-  final List<String> _hadithList = [
-    "Prayer in congregation is 27 times more meritorious than a prayer performed individually.",
-    "If they knew the reward for 'Isha' and Fajr prayers... they would come to them even if they had to crawl.",
-    "One step of his will wipe out a sin and the other step will raise him one degree.",
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.showHadith) {
-      _timer = Timer.periodic(const Duration(seconds: 20), (timer) {
-        if (mounted) {
-          setState(() {
-            _hadithIndex = (_hadithIndex + 1) % _hadithList.length;
-          });
-        }
-      });
-    }
+  // --- SETTINGS MENU ---
+  void _showSettingsMenu(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Wrap(
+            runSpacing: 8,
+            children: [
+              SwitchListTile.adaptive(
+                title: const Text('Dark Mode'),
+                secondary: Icon(Icons.dark_mode_outlined, color: Theme.of(context).primaryColor),
+                value: themeProvider.isDarkMode,
+                onChanged: (value) {
+                  themeProvider.toggleTheme(value);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.login_outlined, color: Theme.of(context).primaryColor),
+                title: const Text('Login / Register'),
+                onTap: () => Navigator.pop(context),
+              ),
+              const Divider(indent: 16, endIndent: 16),
+              ListTile(
+                leading: Icon(Icons.info_outline, color: Theme.of(context).iconTheme.color),
+                title: const Text('About Us'),
+                onTap: () => Navigator.pop(context),
+              ),
+              ListTile(
+                leading: Icon(Icons.star_border_outlined, color: Theme.of(context).iconTheme.color),
+                title: const Text('Rate This App'),
+                onTap: () => Navigator.pop(context),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
+  
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      centerTitle: true,
-      title: Text(widget.title ?? 'Jamat Time'),
-      actions: [
-        Row(
-          children: [
-            const Icon(Icons.location_on_outlined, size: 16),
-            const SizedBox(width: 4),
-            Text("Chattogram", style: Theme.of(context).textTheme.bodyMedium),
-          ],
+      centerTitle: false,
+      automaticallyImplyLeading: false,
+      
+      // TITLE: Mosque Name + Directions Icon
+      title: InkWell(
+        onTap: () { /* Add map navigation logic here */ },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.title ?? 'Jamat Time'),
+              const SizedBox(width: 8),
+              Icon(Icons.directions_outlined, size: 20, color: Theme.of(context).primaryColor),
+            ],
+          ),
         ),
+      ),
+      
+      actions: [
+        // LOCATION & RESCAN BUTTON
+        TextButton.icon(
+          onPressed: widget.onRescanPressed,
+          icon: Icon(widget.onRescanPressed != null ? Icons.sync : Icons.location_on_outlined, size: 18),
+          label: Text("Chattogram", style: Theme.of(context).textTheme.bodyMedium),
+          style: TextButton.styleFrom(
+            foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+        ),
+        
+        // SETTINGS BUTTON
         IconButton(
-          icon: Icon(themeProvider.isDarkMode ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-          tooltip: 'Toggle Theme',
-          onPressed: () {
-            // This is the correct way to call the provider for an action
-            Provider.of<ThemeProvider>(context, listen: false).toggleTheme(!themeProvider.isDarkMode);
-          },
+          icon: const Icon(Icons.settings_outlined),
+          tooltip: 'Settings',
+          onPressed: () => _showSettingsMenu(context),
         ),
       ],
-      bottom: widget.showHadith
-          ? PreferredSize(
-              preferredSize: const Size.fromHeight(30.0),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 1000),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: Text(
-                  _hadithList[_hadithIndex],
-                  key: ValueKey<int>(_hadithIndex),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontStyle: FontStyle.italic, fontSize: 12),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : null,
     );
   }
 }

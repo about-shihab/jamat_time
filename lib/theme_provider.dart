@@ -24,7 +24,7 @@ class AppTheme {
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Poppins'),
+      titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color.fromARGB(255, 156, 203, 206)),
     ),
     textTheme: TextTheme(
       titleLarge: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
