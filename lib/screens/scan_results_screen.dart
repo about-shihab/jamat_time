@@ -12,6 +12,8 @@ import '../widgets/event_card.dart';
 import 'package:jamat_time/l10n/app_localizations.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:jamat_time/config.dart';
 
 class ScanResultsScreen extends StatefulWidget {
   final ValueChanged<Mosque>? onMosqueSelected;
@@ -58,8 +60,15 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         });
         return;
       }
-      // Fetch from OpenStreetMap (Overpass)
-      List<_NearbyPlace> list = await _fetchOSMMosques(pos.latitude, pos.longitude);
+      // Try Supabase table first if configured
+      List<_NearbyPlace> list = [];
+      if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
+        list = await _fetchSupabaseMosques(pos.latitude, pos.longitude);
+      }
+      if (list.isEmpty) {
+        // Fallback to OpenStreetMap (Overpass)
+        list = await _fetchOSMMosques(pos.latitude, pos.longitude);
+      }
       list.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
       setState(() {
         _places = list;
@@ -144,6 +153,54 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       }
     }
     return <_NearbyPlace>[];
+  }
+
+  Future<List<_NearbyPlace>> _fetchSupabaseMosques(double lat, double lon) async {
+    try {
+      // Bounding box ~5km
+      const radiusMeters = 5000.0;
+      const metersPerDegLat = 111000.0;
+      final dLat = radiusMeters / metersPerDegLat;
+      final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
+      final minLat = lat - dLat;
+      final maxLat = lat + dLat;
+      final minLon = lon - dLon;
+      final maxLon = lon + dLon;
+
+      final client = Supabase.instance.client;
+      final resp = await client
+          .from('mosque_list')
+          .select('mosque_name, latitude, longitude, city, district, has_jamat_time')
+          .gte('latitude', minLat)
+          .lte('latitude', maxLat)
+          .gte('longitude', minLon)
+          .lte('longitude', maxLon);
+
+      final rows = (resp as List?) ?? [];
+      final results = <_NearbyPlace>[];
+      for (final row in rows) {
+        if (row is! Map) continue;
+        final name = (row['mosque_name'] ?? 'Mosque').toString();
+        final rLat = (row['latitude'] as num?)?.toDouble();
+        final rLon = (row['longitude'] as num?)?.toDouble();
+        if (rLat == null || rLon == null) continue;
+        final distance = _distanceKm(lat, lon, rLat, rLon);
+        final city = (row['city'] ?? '').toString();
+        final district = (row['district'] ?? '').toString();
+        final addr = [city, district].where((e) => e.isNotEmpty).join(', ');
+        results.add(_NearbyPlace(
+          name: name,
+          address: addr,
+          lat: rLat,
+          lon: rLon,
+          distanceKm: distance,
+        ));
+      }
+      results.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
+      return results;
+    } catch (_) {
+      return [];
+    }
   }
 
   String _buildOverpassQuery(double lat, double lon, int radiusMeters) {

@@ -10,10 +10,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jamat_time/screens/welcome_screen.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 import 'package:jamat_time/providers/prayer_times_provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:jamat_time/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
+    await Supabase.initialize(
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
+    );
+  }
   // Load saved locale to decide if welcome screen is needed
   final prefs = await SharedPreferences.getInstance();
   final code = prefs.getString('locale_code');
