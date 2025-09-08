@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class EditJamatTimeScreen extends StatefulWidget {
   final Mosque mosque;
@@ -41,7 +42,7 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> {
     // In a real app, you would save this data to your database.
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('JazakAllah Khair! Times submitted successfully.'),
+        content: Text(AppLocalizations.of(context)!.jazakallahSubmitted),
         // FIX: Using the correct theme property
         backgroundColor: Theme.of(context).primaryColor,
       ),
@@ -55,14 +56,14 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Update Times'),
+        title: Text(AppLocalizations.of(context)!.updateTimes),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: IconButton(
               icon: const Icon(Icons.save_alt_outlined),
               onPressed: _saveTimes,
-              tooltip: 'Save',
+              tooltip: AppLocalizations.of(context)!.save,
             ),
           ),
         ],

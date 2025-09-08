@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/screens/edit_jamat_time_screen.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class ContributionScreen extends StatefulWidget {
   const ContributionScreen({super.key});
@@ -34,10 +35,11 @@ class _ContributionScreenState extends State<ContributionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Contribute Times'),
+        title: Text(l10n.contributeTimes),
       ),
       body: Column(
         children: [
@@ -46,7 +48,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search by mosque name or area...',
+                hintText: l10n.searchHint,
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Theme.of(context).cardColor.withOpacity(0.5),

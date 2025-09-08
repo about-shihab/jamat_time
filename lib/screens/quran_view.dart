@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class QuranView extends StatelessWidget {
   const QuranView({super.key});
@@ -10,9 +11,10 @@ class QuranView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: const Text('Quran')),
+      appBar: AppBar(title: Text(l10n.quran)),
       body: ListView.builder(
         itemCount: surahNames.length,
         itemBuilder: (context, index) {

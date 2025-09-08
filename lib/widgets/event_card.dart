@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jamat_time/models/event_model.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class EventCard extends StatefulWidget {
   final EventModel event;
@@ -25,6 +26,7 @@ class _EventCardState extends State<EventCard> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final timeFormatter = DateFormat('MMM d, hh:mm a');
     return Card(
       elevation: 2,
@@ -55,12 +57,12 @@ class _EventCardState extends State<EventCard> {
                 Row(children: [
                   Icon(Icons.people_alt_outlined, size: 18, color: Theme.of(context).primaryColor),
                   const SizedBox(width: 6),
-                  Text('${widget.event.goingCount} going', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(l10n.goingCount(widget.event.goingCount), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ]),
                 ElevatedButton.icon(
                   onPressed: _toggleGoing,
                   icon: Icon(widget.event.isUserGoing ? Icons.check_circle : Icons.add_circle_outline, size: 20),
-                  label: Text(widget.event.isUserGoing ? "You're Going" : 'Insha\'Allah, I will go'),
+                  label: Text(widget.event.isUserGoing ? l10n.youreGoing : l10n.inshaAllahGo),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: widget.event.isUserGoing ? Theme.of(context).hintColor : Theme.of(context).primaryColor,
                     foregroundColor: Colors.white,

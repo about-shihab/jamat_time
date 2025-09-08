@@ -3,13 +3,34 @@ import 'package:provider/provider.dart';
 import 'package:jamat_time/notification_service.dart';
 import 'package:jamat_time/screens/landing_screen.dart';
 import 'package:jamat_time/theme_provider.dart';
+import 'package:jamat_time/locale_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jamat_time/screens/welcome_screen.dart';
+import 'package:jamat_time/providers/location_provider.dart';
+import 'package:jamat_time/providers/prayer_times_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  // Load saved locale to decide if welcome screen is needed
+  final prefs = await SharedPreferences.getInstance();
+  final code = prefs.getString('locale_code');
+  final initialLocale = code != null ? Locale(code) : const Locale('en');
+  final hasChosenLanguage = code != null;
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(
+            create: (_) => LocaleProvider(
+                  initialLocale: initialLocale,
+                  hasChosenLanguage: hasChosenLanguage,
+                )),
+        ChangeNotifierProvider(create: (_) => LocationProvider()),
+        ChangeNotifierProvider(create: (_) => PrayerTimesProvider()),
+      ],
       child: const JamatTimeApp(),
     ),
   );
@@ -20,15 +41,26 @@ class JamatTimeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localeProvider = Provider.of<LocaleProvider>(context);
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
-          title: 'Jamat Time',
+          onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const LandingScreen(),
+          locale: localeProvider.locale,
+          supportedLocales: localeProvider.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          home: localeProvider.hasChosenLanguage
+              ? const LandingScreen()
+              : const WelcomeScreen(),
         );
       },
     );

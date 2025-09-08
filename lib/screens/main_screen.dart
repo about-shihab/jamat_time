@@ -33,7 +33,8 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
-    _pageController.animateToPage(index, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.animateToPage(index,
+        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
   }
 
   @override
@@ -45,7 +46,7 @@ class _MainScreenState extends State<MainScreen> {
       const TrackerView(),
       const EventsView(),
     ];
-    
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: PageView(
@@ -54,7 +55,10 @@ class _MainScreenState extends State<MainScreen> {
         children: views,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ContributionScreen())),
+        onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const ContributionScreen())),
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -76,7 +80,9 @@ class _MainScreenState extends State<MainScreen> {
           _buildNavItem(icon: Icons.explore_outlined, index: 1),
           const SizedBox(width: 40), // The space for the notch
           _buildNavItem(icon: Icons.book_outlined, index: 2),
-          _buildNavItem(icon: Icons.event_note_outlined, index: 4), // Mapped to EventsView
+          _buildNavItem(
+              icon: Icons.event_note_outlined,
+              index: 4), // Mapped to EventsView
         ],
       ),
     );
@@ -84,7 +90,11 @@ class _MainScreenState extends State<MainScreen> {
 
   Widget _buildNavItem({required IconData icon, required int index}) {
     return IconButton(
-      icon: Icon(icon, color: _selectedIndex == index ? Theme.of(context).primaryColor : Colors.grey, size: 28),
+      icon: Icon(icon,
+          color: _selectedIndex == index
+              ? Theme.of(context).primaryColor
+              : Colors.grey,
+          size: 28),
       onPressed: () => _onItemTapped(index),
     );
   }

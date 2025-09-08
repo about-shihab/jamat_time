@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/notification_service.dart';
 import 'package:jamat_time/widgets/prayer_dashboard_card.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class JamatTimeView extends StatefulWidget {
   final Mosque mosque;
@@ -36,8 +37,9 @@ class _JamatTimeViewState extends State<JamatTimeView> {
       setState(() {
         _alarmsSet.remove(prayerName);
       });
+      final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Reminder for $prayerName cancelled.'),
+        content: Text(l10n.reminderCancelled(prayerName)),
       ));
     } else {
       _showSetAlarmDialog(prayerName, widget.mosque.jamatTimes[prayerName]!.jamatTime);
@@ -49,15 +51,15 @@ class _JamatTimeViewState extends State<JamatTimeView> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Set Reminder', style: Theme.of(context).textTheme.titleLarge),
+        title: Text(AppLocalizations.of(context)!.setReminder, style: Theme.of(context).textTheme.titleLarge),
         content: TextField(
           controller: _minutesController,
           keyboardType: TextInputType.number,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Minutes before Jamat', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.minutesBeforeJamat, border: const OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
           ElevatedButton(
             onPressed: () {
               final prayerTime = _parseTime(timeStr);
@@ -66,11 +68,11 @@ class _JamatTimeViewState extends State<JamatTimeView> {
               setState(() => _alarmsSet.add(prayerName));
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text('Reminder set for $prayerName.'),
+                content: Text(AppLocalizations.of(context)!.reminderSet(prayerName)),
                 backgroundColor: Theme.of(context).primaryColor,
               ));
             },
-            child: const Text('Set'),
+            child: Text(AppLocalizations.of(context)!.set),
           ),
         ],
       ),
@@ -98,7 +100,8 @@ class _JamatTimeViewState extends State<JamatTimeView> {
           children: [
             Text(widget.mosque.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
             Text(
-              "Updated by ${widget.mosque.lastUpdatedBy} on ${formatter.format(widget.mosque.lastUpdatedAt)}",
+              AppLocalizations.of(context)!
+                  .updatedByOn(widget.mosque.lastUpdatedBy, formatter.format(widget.mosque.lastUpdatedAt)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/prayer_record.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class TrackerView extends StatefulWidget {
   const TrackerView({super.key});
@@ -38,12 +39,13 @@ class _TrackerViewState extends State<TrackerView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final todayRecord = _weekRecords.last;
     final double completion = todayRecord.prayedIndices.length / 5.0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      appBar: AppBar(title: const Text('Namaz Tracker')),
+      appBar: AppBar(title: Text(l10n.namazTracker)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -62,7 +64,7 @@ class _TrackerViewState extends State<TrackerView> {
               ),
             ),
             const SizedBox(height: 10),
-            Center(child: Text("Today's Progress", style: Theme.of(context).textTheme.bodyMedium)),
+            Center(child: Text(l10n.todaysProgress, style: Theme.of(context).textTheme.bodyMedium)),
             const SizedBox(height: 30),
             // Weekly Tracker List
             ..._weekRecords.asMap().entries.map((entry) => _buildDayRow(entry.key, entry.value)),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class AddMosqueScreen extends StatelessWidget {
   const AddMosqueScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       // Padding to avoid keyboard overlapping
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -21,38 +23,38 @@ class AddMosqueScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Contribute Mosque Time',
+            Text(
+              l10n.contributeMosqueTime,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 22,
                 color: Colors.tealAccent,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 20),
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                labelText: 'Your Name',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person),
+                labelText: l10n.yourName,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person),
               ),
             ),
             const SizedBox(height: 15),
-            const TextField(
+            TextField(
               decoration: InputDecoration(
-                labelText: 'Mobile Number',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.phone),
+                labelText: l10n.mobileNumber,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 15),
-             const TextField(
+             TextField(
               decoration: InputDecoration(
-                labelText: 'Mosque Name & Location',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.mosque),
+                labelText: l10n.mosqueNameLocation,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.mosque),
               ),
             ),
             const SizedBox(height: 20),
@@ -61,8 +63,8 @@ class AddMosqueScreen extends StatelessWidget {
                 // Add submission logic here
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Thank you for your contribution!'),
+                  SnackBar(
+                    content: Text(l10n.thankYouContribution),
                     backgroundColor: Colors.green,
                   ),
                 );
@@ -71,7 +73,7 @@ class AddMosqueScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 textStyle: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              child: const Text('Submit'),
+              child: Text(l10n.submit),
             ),
           ],
         ),

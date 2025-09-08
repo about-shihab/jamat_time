@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/screens/main_screen.dart';
-import 'package:jamat_time/screens/scan_view.dart';
+// Removed ScanView from landing flow per new UX (show results directly)
 import 'package:jamat_time/widgets/aurora_background_painter.dart';
+import 'package:provider/provider.dart';
+import 'package:jamat_time/locale_provider.dart';
+import 'package:jamat_time/models/jamat_time_details.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jamat_time/screens/scan_results_screen.dart';
+import 'package:jamat_time/providers/location_provider.dart';
+import 'package:jamat_time/providers/prayer_times_provider.dart';
+import 'dart:async';
 
 class LandingScreen extends StatefulWidget {
-  const LandingScreen({super.key});
+  final Mosque? initialMosque;
+  const LandingScreen({super.key, this.initialMosque});
 
   @override
   State<LandingScreen> createState() => _LandingScreenState();
@@ -19,6 +28,36 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
   void initState() {
     super.initState();
     _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+    // If a mosque was provided (e.g., reselect flow), set it immediately and persist
+    if (widget.initialMosque != null) {
+      _favoriteMosque = widget.initialMosque;
+      SharedPreferences.getInstance().then((prefs) => prefs.setBool('has_favorite', true));
+    }
+    // After language selection: if no favorite chosen before, show scan results.
+    // Otherwise, show nearest mosque immediately.
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final localeProvider = context.read<LocaleProvider>();
+      // Always try to get location and fetch prayer times in background
+      unawaited(_ensureLocationAndTimings());
+      if (!localeProvider.hasChosenLanguage) return;
+      final prefs = await SharedPreferences.getInstance();
+      final hasFavorite = prefs.getBool('has_favorite') ?? false;
+      if (!hasFavorite && widget.initialMosque == null) {
+        if (!mounted) return;
+        // Navigate to scan results and wait for selection.
+        final selected = await Navigator.push<Mosque>(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ScanResultsScreen(),
+          ),
+        );
+        if (selected != null && mounted) {
+          onMosqueFavorited(selected);
+        }
+      } else if (_favoriteMosque == null) {
+        setState(() => _favoriteMosque = _getNearestMockedMosque());
+      }
+    });
   }
 
   @override
@@ -29,6 +68,34 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
 
   void onMosqueFavorited(Mosque mosque) {
     setState(() => _favoriteMosque = mosque);
+    SharedPreferences.getInstance().then(
+      (prefs) => prefs.setBool('has_favorite', true),
+    );
+  }
+
+  Future<void> _ensureLocationAndTimings() async {
+    final loc = context.read<LocationProvider>();
+    await loc.ensureLocation();
+    if (loc.position != null) {
+      final pt = context.read<PrayerTimesProvider>();
+      await pt.fetchByLatLng(loc.position!.latitude, loc.position!.longitude);
+    }
+  }
+
+  Mosque _getNearestMockedMosque() {
+    return Mosque(
+      name: 'Baitul Falah Mosque',
+      address: 'WASA Circle, Chattogram',
+      lastUpdatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
+      lastUpdatedBy: 'A. Khan',
+      jamatTimes: {
+        'Fajr': JamatTimeDetails(jamatTime: '05:10 AM'),
+        'Dhuhr': JamatTimeDetails(jamatTime: '01:35 PM'),
+        'Asr': JamatTimeDetails(jamatTime: '05:05 PM'),
+        'Maghrib': JamatTimeDetails(jamatTime: '06:22 PM'),
+        'Isha': JamatTimeDetails(jamatTime: '08:05 PM'),
+      },
+    );
   }
 
   @override
@@ -55,7 +122,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
             ),
           ),
           _favoriteMosque == null
-              ? ScanView(onMosqueFavorited: onMosqueFavorited)
+              ? const SizedBox.shrink()
               : MainScreen(favoriteMosque: _favoriteMosque!),
         ],
       ),

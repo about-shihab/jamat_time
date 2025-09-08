@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/screens/scan_results_screen.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class ScanView extends StatelessWidget {
   final Function(Mosque) onMosqueFavorited;
@@ -8,15 +9,16 @@ class ScanView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Welcome to Jamat Time", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
+            Text(l10n.welcomeTitle, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
             const SizedBox(height: 10),
-            Text("Find prayer times at your local mosques.", style: Theme.of(context).textTheme.bodyMedium),
+            Text(l10n.welcomeSubtitle, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 40),
             GestureDetector(
               onTap: () {
@@ -30,7 +32,7 @@ class ScanView extends StatelessWidget {
                   color: Theme.of(context).primaryColor,
                   boxShadow: [BoxShadow(color: Theme.of(context).primaryColor.withOpacity(0.5), blurRadius: 20, spreadRadius: 5)],
                 ),
-                child: const Center(child: Text("SCAN", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold))),
+                child: Center(child: Text(l10n.scan, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold))),
               ),
             )
           ],

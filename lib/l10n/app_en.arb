@@ -1,0 +1,84 @@
+{
+  "appTitle": "Jamat Time",
+  "today": "Today",
+  "settings": "Settings",
+  "darkMode": "Dark Mode",
+  "loginRegister": "Login / Register",
+  "aboutUs": "About Us",
+  "rateThisApp": "Rate This App",
+  "language": "Language",
+  "english": "English",
+  "bangla": "Bangla",
+  "getDirections": "Get Directions",
+  "syncPrayerTimes": "Sync Prayer Times",
+  "syncingPrayerTimes": "Syncing prayer times...",
+  "openingMaps": "Opening maps...",
+  "begins": "Begins",
+  "ends": "Ends",
+  "jamat": "Jamat",
+  "welcomeTitle": "Welcome to Jamat Time",
+  "welcomeSubtitle": "Find prayer times at your local mosques.",
+  "scan": "SCAN",
+  "scanResults": "Scan Results",
+  "nearbyMosques": "Nearby Mosques",
+  "nearbyEvents": "Nearby Events",
+  "settingsTitle": "Settings",
+  "namazTracker": "Namaz Tracker",
+  "todaysProgress": "Today's Progress",
+  "qiblaDirection": "Qibla Direction",
+  "quran": "Quran",
+  "contributeTimes": "Contribute Times",
+  "contributeMosqueTime": "Contribute Mosque Time",
+  "searchHint": "Search by mosque name or area...",
+  "updateTimes": "Update Times",
+  "save": "Save",
+  "jazakallahSubmitted": "JazakAllah Khair! Times submitted successfully.",
+  "setReminder": "Set Reminder",
+  "minutesBeforeJamat": "Minutes before Jamat",
+  "cancel": "Cancel",
+  "set": "Set",
+  "reminderCancelled": "Reminder for {prayer} cancelled.",
+  "@reminderCancelled": {
+    "placeholders": {
+      "prayer": {}
+    }
+  },
+  "reminderSet": "Reminder set for {prayer}.",
+  "@reminderSet": {
+    "placeholders": {
+      "prayer": {}
+    }
+  },
+  "updatedByOn": "Updated by {name} on {date}",
+  "@updatedByOn": {
+    "placeholders": {
+      "name": {},
+      "date": {}
+    }
+  },
+  "thankYouContribution": "Thank you for your contribution!",
+  "submit": "Submit",
+  "yourName": "Your Name",
+  "mobileNumber": "Mobile Number",
+  "mosqueNameLocation": "Mosque Name & Location",
+  "goingCount": "{count} going",
+  "@goingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "youreGoing": "You're Going",
+  "inshaAllahGo": "Insha'Allah, I will go",
+  "discoverMosques": "Discover Mosques",
+  "chattogram": "Chattogram",
+  "chattogramBangladesh": "Chattogram, Bangladesh",
+  "rescanNearby": "Rescan Nearby Mosques",
+  "generalPrayerSchedule": "General Prayer Schedule"
+  ,"prayerFajr": "Fajr"
+  ,"prayerDhuhr": "Dhuhr"
+  ,"prayerAsr": "Asr"
+  ,"prayerMaghrib": "Maghrib"
+  ,"prayerIsha": "Isha"
+}

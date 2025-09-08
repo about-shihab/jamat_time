@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class PrayerScheduleScreen extends StatelessWidget {
   final Map<String, String> prayerSchedule;
@@ -9,7 +10,7 @@ class PrayerScheduleScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('General Prayer Schedule'),
+        title: Text(AppLocalizations.of(context)!.generalPrayerSchedule),
         backgroundColor: const Color(0xFF0A0E21),
       ),
       body: Padding(

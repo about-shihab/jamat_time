@@ -1,17 +1,14 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/theme_provider.dart';
+import 'package:hijri/hijri_calendar.dart';
+import 'package:intl/intl.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
+import 'package:jamat_time/locale_provider.dart';
+import 'package:jamat_time/providers/location_provider.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final String? title;
-  final VoidCallback? onRescanPressed; // Callback for the rescan action
-
-  const CustomAppBar({
-    super.key,
-    this.title,
-    this.onRescanPressed,
-  });
+  const CustomAppBar({super.key});
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -24,6 +21,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
   // --- SETTINGS MENU ---
   void _showSettingsMenu(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    final localeProvider = Provider.of<LocaleProvider>(context, listen: false);
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       backgroundColor: Theme.of(context).cardColor,
@@ -37,27 +36,55 @@ class _CustomAppBarState extends State<CustomAppBar> {
             runSpacing: 8,
             children: [
               SwitchListTile.adaptive(
-                title: const Text('Dark Mode'),
-                secondary: Icon(Icons.dark_mode_outlined, color: Theme.of(context).primaryColor),
+                title: Text(l10n.darkMode),
+                secondary: Icon(Icons.dark_mode_outlined,
+                    color: Theme.of(context).primaryColor),
                 value: themeProvider.isDarkMode,
                 onChanged: (value) {
                   themeProvider.toggleTheme(value);
                 },
               ),
               ListTile(
-                leading: Icon(Icons.login_outlined, color: Theme.of(context).primaryColor),
-                title: const Text('Login / Register'),
+                leading: Icon(Icons.language,
+                    color: Theme.of(context).primaryColor),
+                title: Text(l10n.language),
+                trailing: DropdownButton<Locale>(
+                  value: localeProvider.locale,
+                  underline: const SizedBox.shrink(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      localeProvider.setLocale(value);
+                    }
+                  },
+                  items: [
+                    DropdownMenuItem(
+                      value: const Locale('en'),
+                      child: Text(l10n.english),
+                    ),
+                    DropdownMenuItem(
+                      value: const Locale('bn'),
+                      child: Text(l10n.bangla),
+                    ),
+                  ],
+                ),
+              ),
+              ListTile(
+                leading: Icon(Icons.login_outlined,
+                    color: Theme.of(context).primaryColor),
+                title: Text(l10n.loginRegister),
                 onTap: () => Navigator.pop(context),
               ),
               const Divider(indent: 16, endIndent: 16),
               ListTile(
-                leading: Icon(Icons.info_outline, color: Theme.of(context).iconTheme.color),
-                title: const Text('About Us'),
+                leading: Icon(Icons.info_outline,
+                    color: Theme.of(context).iconTheme.color),
+                title: Text(l10n.aboutUs),
                 onTap: () => Navigator.pop(context),
               ),
               ListTile(
-                leading: Icon(Icons.star_border_outlined, color: Theme.of(context).iconTheme.color),
-                title: const Text('Rate This App'),
+                leading: Icon(Icons.star_border_outlined,
+                    color: Theme.of(context).iconTheme.color),
+                title: Text(l10n.rateThisApp),
                 onTap: () => Navigator.pop(context),
               ),
             ],
@@ -66,48 +93,64 @@ class _CustomAppBarState extends State<CustomAppBar> {
       },
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    final hijriDate = HijriCalendar.now().toFormat("d MMMM yyyy");
+    final gregorianDate = DateFormat('d MMMM').format(DateTime.now());
+
+    final l10n = AppLocalizations.of(context)!;
+    final locationProvider = Provider.of<LocationProvider>(context);
+    final cityLabel = locationProvider.city ?? l10n.chattogram;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       automaticallyImplyLeading: false,
-      
-      // TITLE: Mosque Name + Directions Icon
-      title: InkWell(
-        onTap: () { /* Add map navigation logic here */ },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(widget.title ?? 'Jamat Time'),
-              const SizedBox(width: 8),
-              Icon(Icons.directions_outlined, size: 20, color: Theme.of(context).primaryColor),
-            ],
+
+      // DATE AND TIME DISPLAY
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${l10n.today}, $gregorianDate',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-        ),
+          Text(
+            hijriDate,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.color
+                      ?.withOpacity(0.7),
+                ),
+          ),
+        ],
       ),
-      
+
       actions: [
-        // LOCATION & RESCAN BUTTON
+        // LOCATION BUTTON
         TextButton.icon(
-          onPressed: widget.onRescanPressed,
-          icon: Icon(widget.onRescanPressed != null ? Icons.sync : Icons.location_on_outlined, size: 18),
-          label: Text("Chattogram", style: Theme.of(context).textTheme.bodyMedium),
+          onPressed: () {
+            // Add location selection logic here
+          },
+          icon: const Icon(Icons.location_on_outlined, size: 18),
+          label: Text(cityLabel,
+              style: Theme.of(context).textTheme.bodyMedium),
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
         ),
-        
+
         // SETTINGS BUTTON
         IconButton(
           icon: const Icon(Icons.settings_outlined),
-          tooltip: 'Settings',
+          tooltip: l10n.settings,
           onPressed: () => _showSettingsMenu(context),
         ),
       ],

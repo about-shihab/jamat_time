@@ -1,0 +1,84 @@
+{
+  "appTitle": "জামাত টাইম",
+  "today": "আজ",
+  "settings": "সেটিংস",
+  "darkMode": "ডার্ক মোড",
+  "loginRegister": "লগইন / রেজিস্টার",
+  "aboutUs": "আমাদের সম্পর্কে",
+  "rateThisApp": "এই অ্যাপটি রেট করুন",
+  "language": "ভাষা",
+  "english": "ইংরেজি",
+  "bangla": "বাংলা",
+  "getDirections": "দিকনির্দেশ নিন",
+  "syncPrayerTimes": "নামাজের সময় সিঙ্ক করুন",
+  "syncingPrayerTimes": "নামাজের সময় সিঙ্ক হচ্ছে...",
+  "openingMaps": "ম্যাপ খুলছে...",
+  "begins": "শুরু",
+  "ends": "শেষ",
+  "jamat": "জামাত",
+  "welcomeTitle": "জামাত টাইমে স্বাগতম",
+  "welcomeSubtitle": "আপনার আশেপাশের মসজিদের নামাজের সময় খুঁজুন।",
+  "scan": "স্ক্যান",
+  "scanResults": "স্ক্যান ফলাফল",
+  "nearbyMosques": "কাছাকাছি মসজিদ",
+  "nearbyEvents": "কাছাকাছি ইভেন্ট",
+  "settingsTitle": "সেটিংস",
+  "namazTracker": "নামাজ ট্র্যাকার",
+  "todaysProgress": "আজকের অগ্রগতি",
+  "qiblaDirection": "কিবলার দিক",
+  "quran": "কুরআন",
+  "contributeTimes": "সময় যোগ করুন",
+  "contributeMosqueTime": "মসজিদের সময় যোগ করুন",
+  "searchHint": "মসজিদের নাম বা এলাকা দিয়ে খুঁজুন...",
+  "updateTimes": "সময় হালনাগাদ",
+  "save": "সংরক্ষণ",
+  "jazakallahSubmitted": "জাযাকাল্লাহ খাইর! সময় সফলভাবে জমা হয়েছে।",
+  "setReminder": "রিমাইন্ডার সেট করুন",
+  "minutesBeforeJamat": "জামাতের আগে মিনিট",
+  "cancel": "বাতিল",
+  "set": "সেট",
+  "reminderCancelled": "{prayer} এর রিমাইন্ডার বাতিল করা হয়েছে।",
+  "@reminderCancelled": {
+    "placeholders": {
+      "prayer": {}
+    }
+  },
+  "reminderSet": "{prayer} এর জন্য রিমাইন্ডার সেট হয়েছে।",
+  "@reminderSet": {
+    "placeholders": {
+      "prayer": {}
+    }
+  },
+  "updatedByOn": "{name} দ্বারা {date} তারিখে হালনাগাদ",
+  "@updatedByOn": {
+    "placeholders": {
+      "name": {},
+      "date": {}
+    }
+  },
+  "thankYouContribution": "আপনার অবদানের জন্য ধন্যবাদ!",
+  "submit": "জমা দিন",
+  "yourName": "আপনার নাম",
+  "mobileNumber": "মোবাইল নম্বর",
+  "mosqueNameLocation": "মসজিদের নাম ও অবস্থান",
+  "goingCount": "{count} জন যাচ্ছেন",
+  "@goingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "youreGoing": "আপনি যাচ্ছেন",
+  "inshaAllahGo": "ইনশাআল্লাহ, আমি যাব",
+  "discoverMosques": "মসজিদ খুঁজুন",
+  "chattogram": "চট্টগ্রাম",
+  "chattogramBangladesh": "চট্টগ্রাম, বাংলাদেশ",
+  "rescanNearby": "কাছাকাছি মসজিদ পুনঃস্ক্যান",
+  "generalPrayerSchedule": "সাধারণ নামাজের সময়সূচি"
+  ,"prayerFajr": "ফজর"
+  ,"prayerDhuhr": "যোহর"
+  ,"prayerAsr": "আসর"
+  ,"prayerMaghrib": "মাগরিব"
+  ,"prayerIsha": "ইশা"
+}

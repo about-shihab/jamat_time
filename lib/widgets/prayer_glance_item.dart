@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class PrayerGlanceItem extends StatelessWidget {
   final String prayerName;
   final String prayerTime;
+  final String prayerEnd;
   final String jamatTime;
   final IconData icon;
   final bool isNext;
@@ -11,6 +13,7 @@ class PrayerGlanceItem extends StatelessWidget {
     super.key,
     required this.prayerName,
     required this.prayerTime,
+    required this.prayerEnd,
     required this.jamatTime,
     required this.icon,
     this.isNext = false,
@@ -18,6 +21,7 @@ class PrayerGlanceItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -41,23 +45,38 @@ class PrayerGlanceItem extends StatelessWidget {
             child: Icon(icon),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(prayerName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
-              Text("Begins: $prayerTime", style: Theme.of(context).textTheme.bodyMedium),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(prayerName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).hintColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    "$prayerTime - $prayerEnd",
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
           ),
           const Spacer(),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Theme.of(context).hintColor.withOpacity(0.5)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text("Jamat", style: TextStyle(color: Theme.of(context).hintColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text(l10n.jamat, style: TextStyle(color: Theme.of(context).hintColor, fontSize: 11, fontWeight: FontWeight.bold)),
                 Text(jamatTime, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18, color: Theme.of(context).hintColor)),
               ],
             ),

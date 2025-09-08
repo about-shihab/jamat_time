@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/theme_provider.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settingsTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
@@ -20,7 +22,7 @@ class SettingsScreen extends StatelessWidget {
                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                  child: SwitchListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  title: Text('Dark Mode', style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16)),
+                  title: Text(l10n.darkMode, style: Theme.of(context).textTheme.bodyLarge?.copyWith(fontSize: 16)),
                   value: themeProvider.isDarkMode,
                   onChanged: (value) {
                     themeProvider.toggleTheme(value);

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/jamat_time_details.dart';
 import '../models/mosque_model.dart';
+import 'package:jamat_time/l10n/app_localizations.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -41,8 +42,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Discover Mosques')),
+      appBar: AppBar(title: Text(l10n.discoverMosques)),
       body: ListView.builder(
         padding: const EdgeInsets.all(8),
         itemCount: _nearbyMosques.length,
