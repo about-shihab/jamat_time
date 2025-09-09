@@ -40,6 +40,30 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     );
   }
 
+  Widget _buildLanguageButton(
+      {required BuildContext context,
+      required String title,
+      required Locale locale}) {
+    return InkWell(
+      onTap: () => _choose(context, locale),
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        width: 220,
+        height: 55,
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+              color: Theme.of(context).primaryColor.withOpacity(0.3)),
+        ),
+        child: Center(
+          child: Text(title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -65,62 +89,27 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
-                  decoration: BoxDecoration(
-                    color: theme.cardColor.withOpacity(0.7),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: theme.primaryColor.withOpacity(0.3)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.primaryColor.withOpacity(0.2),
-                        blurRadius: 20,
-                        spreadRadius: 4,
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Choose Language',
-                        style: theme.textTheme.titleLarge
-                            ?.copyWith(fontSize: 22, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'ভাষা নির্বাচন করুন',
-                        style: theme.textTheme.bodyMedium,
-                      ),
-                      const SizedBox(height: 22),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => _choose(context, const Locale('en')),
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                              child: const Text('English'),
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => _choose(context, const Locale('bn')),
-                              style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
-                              ),
-                              child: const Text('বাংলা'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.language_outlined,
+                        size: 80, color: theme.primaryColor),
+                    const SizedBox(height: 20),
+                    const Text("Welcome / স্বাগতম",
+                        style: TextStyle(
+                            fontSize: 28, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+                    const Text(
+                        "Please select your language\nআপনার ভাষা নির্বাচন করুন",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    const SizedBox(height: 50),
+                    _buildLanguageButton(
+                        context: context, title: 'English', locale: const Locale('en')),
+                    const SizedBox(height: 20),
+                    _buildLanguageButton(
+                        context: context, title: 'বাংলা', locale: const Locale('bn')),
+                  ],
                 ),
               ),
             ),

@@ -64,9 +64,6 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       List<_NearbyPlace> list = [];
       if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
         list = await _fetchSupabaseMosques(pos.latitude, pos.longitude);
-        print('Fetched mosques from Supabase: ${list.map((e) => e.name).toList()}');
-        print(pos.latitude);
-        print(pos.longitude);
 
       }
       if (list.isEmpty) {

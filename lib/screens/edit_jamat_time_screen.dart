@@ -76,7 +76,7 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> {
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
           ),
           Text(
-            widget.mosque.address,
+            widget.mosque.address ?? '',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
           const SizedBox(height: 24),

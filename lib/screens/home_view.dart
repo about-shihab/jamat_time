@@ -47,7 +47,8 @@ class _HomeViewState extends State<HomeView> {
   Future<void> _handleTrackMosque() async {
     final l10n = AppLocalizations.of(context)!;
     final address = widget.favoriteMosque.address;
-
+    final lat = widget.favoriteMosque.latitude;
+    final lng = widget.favoriteMosque.longitude;
     if (address == null || address.isEmpty) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -61,7 +62,8 @@ class _HomeViewState extends State<HomeView> {
     );
 
     final query = Uri.encodeComponent(address);
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    // final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

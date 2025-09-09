@@ -70,7 +70,7 @@ class _ContributionScreenState extends State<ContributionScreen> {
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                     title: Text(mosque.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text(mosque.address),
+                    subtitle: Text(mosque.address ?? ''),
                     trailing: Icon(Icons.edit_note_outlined, color: Theme.of(context).primaryColor),
                     onTap: () {
                       Navigator.push(context, MaterialPageRoute(builder: (context) => EditJamatTimeScreen(mosque: mosque)));
