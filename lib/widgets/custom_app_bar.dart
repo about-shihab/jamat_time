@@ -1,17 +1,11 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/theme_provider.dart';
+import 'package:hijri/hijri_calendar.dart';
+import 'package:intl/intl.dart';
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final String? title;
-  final VoidCallback? onRescanPressed; // Callback for the rescan action
-
-  const CustomAppBar({
-    super.key,
-    this.title,
-    this.onRescanPressed,
-  });
+  const CustomAppBar({super.key});
 
   @override
   State<CustomAppBar> createState() => _CustomAppBarState();
@@ -69,34 +63,41 @@ class _CustomAppBarState extends State<CustomAppBar> {
   
   @override
   Widget build(BuildContext context) {
+    final hijriDate = HijriCalendar.now().toFormat("d MMMM yyyy");
+    final gregorianDate = DateFormat('d MMMM').format(DateTime.now());
+    
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       automaticallyImplyLeading: false,
       
-      // TITLE: Mosque Name + Directions Icon
-      title: InkWell(
-        onTap: () { /* Add map navigation logic here */ },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(widget.title ?? 'Jamat Time'),
-              const SizedBox(width: 8),
-              Icon(Icons.directions_outlined, size: 20, color: Theme.of(context).primaryColor),
-            ],
+      // DATE AND TIME DISPLAY
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Today, $gregorianDate',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
+          Text(
+            hijriDate,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.7),
+            ),
+          ),
+        ],
       ),
       
       actions: [
-        // LOCATION & RESCAN BUTTON
+        // LOCATION BUTTON
         TextButton.icon(
-          onPressed: widget.onRescanPressed,
-          icon: Icon(widget.onRescanPressed != null ? Icons.sync : Icons.location_on_outlined, size: 18),
+          onPressed: () {
+            // Add location selection logic here
+          },
+          icon: const Icon(Icons.location_on_outlined, size: 18),
           label: Text("Chattogram", style: Theme.of(context).textTheme.bodyMedium),
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,
