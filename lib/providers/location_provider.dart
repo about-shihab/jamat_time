@@ -32,12 +32,12 @@ class LocationProvider extends ChangeNotifier {
   }
 
   Future<void> _acquireLocation() async {
-    if (_loading) return; // guard
+    if (_loading) return; // Guard to prevent multiple loading attempts
     _loading = true;
     _error = null;
     notifyListeners();
     try {
-      // Try quick bootstrap from cache once
+      // Try to get from cache first
       if (!_loadedFromCache) {
         try {
           final prefs = await SharedPreferences.getInstance();
@@ -68,26 +68,43 @@ class LocationProvider extends ChangeNotifier {
         } catch (_) {}
       }
 
+      // Ensure permissions are set
       final perm = await _ensurePermission();
       if (!perm) {
         _error ??= 'Location permission denied or services disabled';
         return;
       }
-      // Try last known first for a quick value
-      Position? pos = await Geolocator.getLastKnownPosition();
-      if (pos == null) {
+
+      // Check if we are on a web platform
+      Position? pos;
+      if (kIsWeb) {
+        // Web platform: Use current position directly as lastKnownPosition is unsupported
         try {
           pos = await Geolocator.getCurrentPosition(
             desiredAccuracy: LocationAccuracy.high,
-            timeLimit: const Duration(seconds: 10),
           );
-        } on TimeoutException {
-          // Fall back to low accuracy if high accuracy times out
-          pos = await Geolocator.getCurrentPosition(
-            desiredAccuracy: LocationAccuracy.low,
-          );
+        } catch (e) {
+          _error = 'Unable to get location on the web';
+        }
+      } else {
+        // Try last known position first for mobile platforms
+        pos = await Geolocator.getLastKnownPosition();
+        if (pos == null) {
+          // If last known position is not available, try current position
+          try {
+            pos = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.high,
+              timeLimit: const Duration(seconds: 10),
+            );
+          } on TimeoutException {
+            // Fall back to low accuracy if high accuracy times out
+            pos = await Geolocator.getCurrentPosition(
+              desiredAccuracy: LocationAccuracy.low,
+            );
+          }
         }
       }
+
       if (pos != null) {
         _position = pos;
         try {
@@ -99,7 +116,8 @@ class LocationProvider extends ChangeNotifier {
                 : (p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea : null);
             _country = p.country;
           }
-          // Persist latest location snapshot
+
+          // Persist latest location snapshot to SharedPreferences
           try {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setDouble('last_loc_lat', pos.latitude);
@@ -122,7 +140,7 @@ class LocationProvider extends ChangeNotifier {
   Future<bool> _ensurePermission() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      // Try to prompt user to enable
+      // Try to prompt the user to enable location services
       await Geolocator.openLocationSettings();
       serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -130,6 +148,7 @@ class LocationProvider extends ChangeNotifier {
         return false;
       }
     }
+
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -138,11 +157,13 @@ class LocationProvider extends ChangeNotifier {
         return false;
       }
     }
+
     if (permission == LocationPermission.deniedForever) {
       _error = 'Location permission permanently denied';
       await Geolocator.openAppSettings();
       return false;
     }
+
     return true;
   }
 }

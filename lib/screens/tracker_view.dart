@@ -24,6 +24,7 @@ class _TrackerViewState extends State<TrackerView> {
       final prayed = (i % 2 == 0) ? {0, 1, 3, 4} : {0, 1, 2};
       return PrayerRecord(date: date, prayedIndices: prayed);
     }).reversed.toList();
+    _weekRecords = [];
   }
   
   void _togglePrayer(int dayIndex, int prayerIndex) {
@@ -42,6 +43,8 @@ class _TrackerViewState extends State<TrackerView> {
     final l10n = AppLocalizations.of(context)!;
     final todayRecord = _weekRecords.last;
     final double completion = todayRecord.prayedIndices.length / 5.0;
+    final todayRecord = _weekRecords.isNotEmpty ? _weekRecords.last : null;
+    final double completion = todayRecord != null ? todayRecord.prayedIndices.length / 5.0 : 0.0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,

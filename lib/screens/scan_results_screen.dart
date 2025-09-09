@@ -64,6 +64,10 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       List<_NearbyPlace> list = [];
       if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
         list = await _fetchSupabaseMosques(pos.latitude, pos.longitude);
+        print('Fetched mosques from Supabase: ${list.map((e) => e.name).toList()}');
+        print(pos.latitude);
+        print(pos.longitude);
+
       }
       if (list.isEmpty) {
         // Fallback to OpenStreetMap (Overpass)
@@ -158,9 +162,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   Future<List<_NearbyPlace>> _fetchSupabaseMosques(double lat, double lon) async {
     try {
       // Bounding box ~5km
-      const radiusMeters = 5000.0;
+      const radiusMeters = 50000000.0;
       const metersPerDegLat = 111000.0;
-      final dLat = radiusMeters / metersPerDegLat;
+      const dLat = radiusMeters / metersPerDegLat;
       final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
       final minLat = lat - dLat;
       final maxLat = lat + dLat;

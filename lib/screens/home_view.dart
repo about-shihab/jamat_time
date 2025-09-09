@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:jamat_time/providers/prayer_times_provider.dart';
 import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/screens/landing_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeView extends StatefulWidget {
   final Mosque favoriteMosque;
@@ -43,11 +44,33 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  void _handleTrackMosque() {
-    // Add your map navigation logic here
+  Future<void> _handleTrackMosque() async {
+    final l10n = AppLocalizations.of(context)!;
+    final address = widget.favoriteMosque.address;
+
+    if (address == null || address.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Address not available to show on map.")),
+      );
+      return;
+    }
+
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.openingMaps)),
+      SnackBar(content: Text(l10n.openingMaps)),
     );
+
+    final query = Uri.encodeComponent(address);
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open maps application.')),
+      );
+    }
   }
 
   @override

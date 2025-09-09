@@ -12,7 +12,8 @@ class AppConfig {
     defaultValue: 'https://nxvuivnpeuvcnimimnii.supabase.co',
   );
   static const supabaseAnonKey = String.fromEnvironment(
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dnVpdm5wZXV2Y25pbWltbmlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNTQ4MTUsImV4cCI6MjA3MjkzMDgxNX0.Tf7o4b5AKj2Kgpa0pF2ifuEFz-AHMqvylndO8CrMsew',
-    defaultValue: '',
+    'SUPABASE_ANON_KEY',
+    defaultValue:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dnVpdm5wZXV2Y25pbWltbmlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNTQ4MTUsImV4cCI6MjA3MjkzMDgxNX0.Tf7o4b5AKj2Kgpa0pF2ifuEFz-AHMqvylndO8CrMsew',
   );
 }
