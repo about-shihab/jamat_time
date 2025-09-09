@@ -46,13 +46,14 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _handleTrackMosque() async {
     final l10n = AppLocalizations.of(context)!;
-    final address = widget.favoriteMosque.address;
     final lat = widget.favoriteMosque.latitude;
-    final lng = widget.favoriteMosque.longitude;
-    if (address == null || address.isEmpty) {
+    final lon = widget.favoriteMosque.longitude;
+    final address = widget.favoriteMosque.address;
+
+    if ((lat == null || lon == null) && (address == null || address.isEmpty)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Address not available to show on map.")),
+        const SnackBar(content: Text("Location data not available for this mosque.")),
       );
       return;
     }
@@ -61,9 +62,14 @@ class _HomeViewState extends State<HomeView> {
       SnackBar(content: Text(l10n.openingMaps)),
     );
 
-    final query = Uri.encodeComponent(address);
-    // final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+    // Prioritize lat/lon for accuracy
+    final String query;
+    if (lat != null && lon != null) {
+      query = '$lat,$lon';
+    } else {
+      query = Uri.encodeComponent(address!);
+    }
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);

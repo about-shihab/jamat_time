@@ -424,6 +424,8 @@ extension on _ScanResultsScreenState {
                     final mosque = Mosque(
                       name: place.name,
                       address: place.address.isEmpty ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}' : place.address,
+                      latitude: place.lat,
+                      longitude: place.lon,
                       lastUpdatedAt: DateTime.now(),
                       lastUpdatedBy: 'OSM',
                       jamatTimes: {

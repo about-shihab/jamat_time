@@ -86,6 +86,8 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     return Mosque(
       name: 'Baitul Falah Mosque',
       address: 'WASA Circle, Chattogram',
+      latitude: 22.3569,
+      longitude: 91.8333,
       lastUpdatedAt: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
       lastUpdatedBy: 'A. Khan',
       jamatTimes: {
