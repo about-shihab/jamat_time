@@ -12,6 +12,7 @@ import 'package:jamat_time/providers/location_provider.dart';
 import 'package:jamat_time/providers/prayer_times_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jamat_time/config.dart';
+import 'package:jamat_time/services/prayer_type_cache.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,10 @@ void main() async {
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,
     );
+    // Preload prayer_type cache once
+    try {
+      await PrayerTypeCache.ensureLoaded();
+    } catch (_) {}
   }
   // Load saved locale to decide if welcome screen is needed
   final prefs = await SharedPreferences.getInstance();

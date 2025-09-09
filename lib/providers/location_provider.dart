@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocationProvider extends ChangeNotifier {
   Position? _position;
   String? _city;
+  String? _district;
   String? _country;
   bool _loading = false;
   String? _error;
@@ -15,6 +16,7 @@ class LocationProvider extends ChangeNotifier {
 
   Position? get position => _position;
   String? get city => _city;
+  String? get district => _district;
   String? get country => _country;
   bool get loading => _loading;
   String? get error => _error;
@@ -44,6 +46,7 @@ class LocationProvider extends ChangeNotifier {
           final lat = prefs.getDouble('last_loc_lat');
           final lon = prefs.getDouble('last_loc_lon');
           final city = prefs.getString('last_loc_city');
+          final district = prefs.getString('last_loc_district');
           final country = prefs.getString('last_loc_country');
           if (lat != null && lon != null) {
             _position = Position(
@@ -61,6 +64,7 @@ class LocationProvider extends ChangeNotifier {
               headingAccuracy: 0,
             );
             _city = city;
+            _district = district;
             _country = country;
             _loadedFromCache = true;
             notifyListeners();
@@ -111,9 +115,9 @@ class LocationProvider extends ChangeNotifier {
           final placemarks = await geo.placemarkFromCoordinates(pos.latitude, pos.longitude);
           if (placemarks.isNotEmpty) {
             final p = placemarks.first;
-            _city = p.locality?.isNotEmpty == true
-                ? p.locality
-                : (p.subAdministrativeArea?.isNotEmpty == true ? p.subAdministrativeArea : null);
+            // Prefer district (subAdministrativeArea) for app bar, fallback to locality
+            _district = (p.subAdministrativeArea?.isNotEmpty == true) ? p.subAdministrativeArea : null;
+            _city = (p.locality?.isNotEmpty == true) ? p.locality : _district;
             _country = p.country;
           }
 
@@ -123,6 +127,7 @@ class LocationProvider extends ChangeNotifier {
             await prefs.setDouble('last_loc_lat', pos.latitude);
             await prefs.setDouble('last_loc_lon', pos.longitude);
             if (_city != null) await prefs.setString('last_loc_city', _city!);
+            if (_district != null) await prefs.setString('last_loc_district', _district!);
             if (_country != null) await prefs.setString('last_loc_country', _country!);
           } catch (_) {}
         } catch (_) {}

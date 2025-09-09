@@ -10,6 +10,8 @@ import 'package:jamat_time/providers/prayer_times_provider.dart';
 import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/screens/landing_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:jamat_time/services/jamat_time_service.dart';
+import 'package:jamat_time/widgets/next_jamat_card.dart';
 
 class HomeView extends StatefulWidget {
   final Mosque favoriteMosque;
@@ -29,6 +31,10 @@ class _HomeViewState extends State<HomeView> {
     'Isha': '--:--'
   };
 
+  Map<String, String>? _jamatTimes; // fetched from Supabase by mosque id
+  Map<String, String> get _effectiveJamatTimes => _jamatTimes ??
+      widget.favoriteMosque.jamatTimes.map((k, v) => MapEntry(k, v.jamatTime));
+
   Future<void> _handleSync() async {
     // Rescan nearby mosques: open results directly and replace MainScreen on choice
     final selected = await Navigator.push<Mosque>(
@@ -43,6 +49,81 @@ class _HomeViewState extends State<HomeView> {
       );
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadJamatTimes();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.favoriteMosque.id != widget.favoriteMosque.id) {
+      _jamatTimes = null;
+      _loadJamatTimes();
+    }
+  }
+
+  Future<void> _loadJamatTimes() async {
+    final id = widget.favoriteMosque.id;
+    if (id == null) return;
+    try {
+      final map = await JamatTimeService.fetchForMosque(id);
+      if (!mounted) return;
+      if (map.isNotEmpty) {
+        setState(() {
+          _jamatTimes = map.map((k, v) => MapEntry(k, v.jamatTime));
+        });
+      }
+    } catch (_) {
+      // ignore: keep fallback
+    }
+  }
+
+  String? _computeNextJamat() {
+    final now = DateTime.now();
+    DateTime? bestTime;
+    String? bestName;
+    final jt = _effectiveJamatTimes;
+    for (final entry in jt.entries) {
+      final parsed = _parseToToday(entry.value);
+      if (parsed == null) continue;
+      if (parsed.isAfter(now) && (bestTime == null || parsed.isBefore(bestTime))) {
+        bestTime = parsed;
+        bestName = entry.key;
+      }
+    }
+    if (bestTime == null || bestName == null) return null;
+    return '$bestName|${_format12h(_hhmm(bestTime))}';
+  }
+
+  DateTime? _parseToToday(String hhmm) {
+    try {
+      if (hhmm.contains('AM') || hhmm.contains('PM')) {
+        // Normalize to 24h
+        final parts = hhmm.split(' ');
+        final t = parts[0];
+        final ampm = parts.length > 1 ? parts[1].toUpperCase() : '';
+        final p = t.split(':');
+        int h = int.parse(p[0]);
+        final m = int.parse(p[1]);
+        if (ampm == 'PM' && h != 12) h += 12;
+        if (ampm == 'AM' && h == 12) h = 0;
+        final n = DateTime.now();
+        return DateTime(n.year, n.month, n.day, h, m);
+      }
+      final p = hhmm.split(':');
+      final h = int.parse(p[0]);
+      final m = int.parse(p[1]);
+      final n = DateTime.now();
+      return DateTime(n.year, n.month, n.day, h, m);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _hhmm(DateTime dt) => '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   Future<void> _handleTrackMosque() async {
     final l10n = AppLocalizations.of(context)!;
@@ -230,6 +311,19 @@ class _HomeViewState extends State<HomeView> {
                 ],
               ),
             ),
+            // Next Jamat Card (if jamat times available)
+            Builder(builder: (context){
+              final next = _computeNextJamat();
+              if (next == null) return const SizedBox.shrink();
+              final parts = next.split('|');
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: NextJamatCard(
+                  prayerName: _localizedPrayerName(l10n, parts[0]),
+                  prayerTime: parts[1],
+                ),
+              );
+            }),
             // Prayer Times Title
 
             // Prayer Times List using original PrayerGlanceItem
@@ -237,9 +331,9 @@ class _HomeViewState extends State<HomeView> {
                   prayerName: _localizedPrayerName(l10n, prayerName),
                   prayerTime: _format12h(times[prayerName]!),
                   prayerEnd: _format12h(_endFor(prayerName, times)),
-                  jamatTime:
-                      widget.favoriteMosque.jamatTimes[prayerName]?.jamatTime ??
-                          '--:--',
+                  jamatTime: _format12h(
+                      _effectiveJamatTimes[prayerName] ?? '--:--'
+                  ),
                   icon: getIconForPrayer(prayerName),
                 )),
           ],

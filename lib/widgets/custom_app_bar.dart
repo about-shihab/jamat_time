@@ -101,7 +101,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
     final l10n = AppLocalizations.of(context)!;
     final locationProvider = Provider.of<LocationProvider>(context);
-    final cityLabel = locationProvider.city ?? l10n.chattogram;
+    final districtLabel = locationProvider.district ?? locationProvider.city ?? l10n.chattogram;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -138,7 +138,7 @@ class _CustomAppBarState extends State<CustomAppBar> {
             // Add location selection logic here
           },
           icon: const Icon(Icons.location_on_outlined, size: 18),
-          label: Text(cityLabel,
+          label: Text(districtLabel,
               style: Theme.of(context).textTheme.bodyMedium),
           style: TextButton.styleFrom(
             foregroundColor: Theme.of(context).textTheme.bodyMedium?.color,

@@ -11,6 +11,8 @@ import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 import 'package:jamat_time/providers/prayer_times_provider.dart';
 import 'dart:async';
+import 'dart:convert';
+import 'package:jamat_time/services/jamat_time_service.dart';
 
 class LandingScreen extends StatefulWidget {
   final Mosque? initialMosque;
@@ -31,6 +33,9 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     // If a mosque was provided (e.g., reselect flow), set it immediately and persist
     if (widget.initialMosque != null) {
       _favoriteMosque = widget.initialMosque;
+      // Enrich with Supabase jamat times if available
+      unawaited(_enrichFavoriteWithJamatTimes());
+      unawaited(_saveFavorite(_favoriteMosque!));
       SharedPreferences.getInstance().then((prefs) => prefs.setBool('has_favorite', true));
     }
     // After language selection: if no favorite chosen before, show scan results.
@@ -52,10 +57,16 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
           ),
         );
         if (selected != null && mounted) {
-          onMosqueFavorited(selected);
+          await onMosqueFavorited(selected);
         }
       } else if (_favoriteMosque == null) {
-        setState(() => _favoriteMosque = _getNearestMockedMosque());
+        final saved = await _loadFavorite();
+        if (saved != null && mounted) {
+          setState(() => _favoriteMosque = saved);
+          await _enrichFavoriteWithJamatTimes();
+        } else {
+          setState(() => _favoriteMosque = _getNearestMockedMosque());
+        }
       }
     });
   }
@@ -66,11 +77,84 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     super.dispose();
   }
 
-  void onMosqueFavorited(Mosque mosque) {
-    setState(() => _favoriteMosque = mosque);
-    SharedPreferences.getInstance().then(
-      (prefs) => prefs.setBool('has_favorite', true),
-    );
+  Future<void> onMosqueFavorited(Mosque mosque) async {
+    // Set immediately for snappy UX
+    if (mounted) setState(() => _favoriteMosque = mosque);
+    SharedPreferences.getInstance().then((prefs) => prefs.setBool('has_favorite', true));
+    await _saveFavorite(mosque);
+    // Then enrich with jamat times from Supabase if mosque has id
+    await _enrichFavoriteWithJamatTimes();
+  }
+
+  Future<void> _enrichFavoriteWithJamatTimes() async {
+    final current = _favoriteMosque;
+    if (current == null) return;
+    final id = current.id;
+    if (id == null) return; // OSM-only mosque, no Supabase id
+    try {
+      final map = await JamatTimeService.fetchForMosque(id);
+      if (map.isEmpty) return;
+      final enriched = Mosque(
+        id: current.id,
+        name: current.name,
+        address: current.address,
+        latitude: current.latitude,
+        longitude: current.longitude,
+        city: current.city,
+        district: current.district,
+        isFemaleAccessible: current.isFemaleAccessible,
+        createdBy: current.createdBy,
+        createdAt: current.createdAt,
+        jamatTimes: map,
+        lastUpdatedAt: DateTime.now(),
+        lastUpdatedBy: 'Supabase',
+      );
+      if (!mounted) return;
+      setState(() => _favoriteMosque = enriched);
+    } catch (_) {
+      // keep existing
+    }
+  }
+
+  Future<void> _saveFavorite(Mosque m) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final map = <String, dynamic>{
+        'id': m.id,
+        'name': m.name,
+        'address': m.address,
+        'lat': m.latitude,
+        'lon': m.longitude,
+        'city': m.city,
+        'district': m.district,
+        'fa': m.isFemaleAccessible,
+      };
+      await prefs.setString('favorite_mosque', json.encode(map));
+    } catch (_) {}
+  }
+
+  Future<Mosque?> _loadFavorite() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('favorite_mosque');
+      if (raw == null) return null;
+      final m = json.decode(raw) as Map<String, dynamic>;
+      return Mosque(
+        id: (m['id'] as num?)?.toInt(),
+        name: (m['name'] ?? 'Mosque').toString(),
+        address: m['address'] as String?,
+        latitude: (m['lat'] as num?)?.toDouble(),
+        longitude: (m['lon'] as num?)?.toDouble(),
+        city: m['city'] as String?,
+        district: m['district'] as String?,
+        isFemaleAccessible: (m['fa'] as bool?) ?? false,
+        jamatTimes: const {},
+        lastUpdatedAt: DateTime.now(),
+        lastUpdatedBy: 'Saved',
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _ensureLocationAndTimings() async {

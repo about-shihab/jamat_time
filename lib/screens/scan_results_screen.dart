@@ -9,6 +9,7 @@ import '../models/event_model.dart';
 import '../models/jamat_time_details.dart';
 import '../models/mosque_model.dart';
 import '../widgets/event_card.dart';
+import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/l10n/app_localizations.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 import 'package:geolocator/geolocator.dart';
@@ -171,7 +172,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       final client = Supabase.instance.client;
       final resp = await client
           .from('mosque_list')
-          .select('mosque_name, latitude, longitude, city, district, has_jamat_time')
+          .select('id, mosque_name, latitude, longitude, city, district, is_female_accessible')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
           .gte('longitude', minLon)
@@ -190,11 +191,13 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         final district = (row['district'] ?? '').toString();
         final addr = [city, district].where((e) => e.isNotEmpty).join(', ');
         results.add(_NearbyPlace(
+          id: (row['id'] as num?)?.toInt(),
           name: name,
           address: addr,
           lat: rLat,
           lon: rLon,
           distanceKm: distance,
+          femaleAllowed: (row['is_female_accessible'] as bool?) ?? false,
         ));
       }
       results.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
@@ -242,14 +245,58 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       await prefs.setDouble('osm_cache_center_lon', centerLon);
       final jsonList = places
           .map((p) => {
+                'id': p.id,
                 'name': p.name,
                 'address': p.address,
                 'lat': p.lat,
                 'lon': p.lon,
+                'fa': p.femaleAllowed,
               })
           .toList();
       await prefs.setString('osm_cache_places', json.encode(jsonList));
     } catch (_) {}
+  }
+
+  Future<Map<String, dynamic>?> _findNearestSupabaseMosque(double lat, double lon, {String? nameHint}) async {
+    try {
+      final client = Supabase.instance.client;
+      // Small bounding box around the selected point (~250m)
+      const metersPerDegLat = 111000.0;
+      const radiusMeters = 250.0;
+      final dLat = radiusMeters / metersPerDegLat;
+      final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
+      final minLat = lat - dLat;
+      final maxLat = lat + dLat;
+      final minLon = lon - dLon;
+      final maxLon = lon + dLon;
+
+      final resp = await client
+          .from('mosque_list')
+          .select('id, mosque_name, latitude, longitude, city, district, is_female_accessible')
+          .gte('latitude', minLat)
+          .lte('latitude', maxLat)
+          .gte('longitude', minLon)
+          .lte('longitude', maxLon);
+
+      final rows = (resp as List?)?.whereType<Map<String, dynamic>>().toList() ?? const [];
+      if (rows.isEmpty) return null;
+      // Find nearest by haversine distance
+      Map<String, dynamic>? best;
+      double bestDist = double.infinity;
+      for (final r in rows) {
+        final rLat = (r['latitude'] as num?)?.toDouble();
+        final rLon = (r['longitude'] as num?)?.toDouble();
+        if (rLat == null || rLon == null) continue;
+        final d = _distanceKm(lat, lon, rLat, rLon);
+        if (d < bestDist) {
+          bestDist = d;
+          best = r;
+        }
+      }
+      return best;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<List<_NearbyPlace>> _loadFromCache(double lat, double lon, {bool ignoreRadius = false}) async {
@@ -263,11 +310,13 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       if (!ignoreRadius && distToCenter > 2.0) return [];
       final list = (json.decode(data) as List)
           .map((e) => _NearbyPlace(
+                id: (e['id'] as num?)?.toInt(),
                 name: e['name'] as String,
                 address: (e['address'] ?? '') as String,
                 lat: (e['lat'] as num).toDouble(),
                 lon: (e['lon'] as num).toDouble(),
                 distanceKm: 0,
+                femaleAllowed: (e['fa'] as bool?) ?? false,
               ))
           .toList();
       for (var i = 0; i < list.length; i++) {
@@ -334,17 +383,21 @@ Widget _chip(BuildContext context, String text) {
 }
 
 class _NearbyPlace {
+  final int? id;
   final String name;
   final String address;
   final double lat;
   final double lon;
   final double distanceKm;
+  final bool? femaleAllowed;
   _NearbyPlace({
+    this.id,
     required this.name,
     required this.address,
     required this.lat,
     required this.lon,
     required this.distanceKm,
+    this.femaleAllowed,
   });
 }
 
@@ -414,29 +467,67 @@ extension on _ScanResultsScreenState {
                       if (place.address.isNotEmpty)
                         Text(place.address, style: Theme.of(context).textTheme.bodyMedium),
                       const SizedBox(height: 8),
-                      _chip(context, "${place.distanceKm.toStringAsFixed(2)} km"),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          _chip(context, "${place.distanceKm.toStringAsFixed(2)} km"),
+                          if (place.femaleAllowed == true)
+                            _chip(context, "Women allowed"),
+                        ],
+                      ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
+                    // Try to enrich with Supabase jamat times if we have an id
+                    Map<String, JamatTimeDetails> jamat = const {};
+                    String updatedBy = 'OSM';
+                    int? supaId = place.id;
+                    bool femaleAllowed = place.femaleAllowed ?? false;
+
+                    // If no Supabase id from the list, try nearest match by lat/lon
+                    if (supaId == null) {
+                      final match = await _findNearestSupabaseMosque(place.lat, place.lon, nameHint: place.name);
+                      if (match != null) {
+                        supaId = (match['id'] as num?)?.toInt();
+                        femaleAllowed = (match['is_female_accessible'] as bool?) ?? femaleAllowed;
+                      }
+                    }
+
+                    if (supaId != null) {
+                      try {
+                        final fetched = await JamatTimeService.fetchForMosque(supaId);
+                        if (fetched.isNotEmpty) {
+                          jamat = fetched;
+                          updatedBy = 'Supabase';
+                        }
+                      } catch (_) {}
+                    }
+
                     final mosque = Mosque(
+                      id: supaId,
                       name: place.name,
                       address: place.address.isEmpty ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}' : place.address,
                       latitude: place.lat,
                       longitude: place.lon,
+                      isFemaleAccessible: femaleAllowed,
                       lastUpdatedAt: DateTime.now(),
-                      lastUpdatedBy: 'OSM',
-                      jamatTimes: {
-                        'Fajr': JamatTimeDetails(jamatTime: '--:--'),
-                        'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
-                        'Asr': JamatTimeDetails(jamatTime: '--:--'),
-                        'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
-                        'Isha': JamatTimeDetails(jamatTime: '--:--'),
-                      },
+                      lastUpdatedBy: updatedBy,
+                      jamatTimes: jamat.isNotEmpty
+                          ? jamat
+                          : {
+                              'Fajr': JamatTimeDetails(jamatTime: '--:--'),
+                              'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
+                              'Asr': JamatTimeDetails(jamatTime: '--:--'),
+                              'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
+                              'Isha': JamatTimeDetails(jamatTime: '--:--'),
+                            },
                     );
                     widget.onMosqueSelected?.call(mosque);
+                    if (!context.mounted) return;
                     Navigator.pop(context, mosque);
                   },
                   icon: const Icon(Icons.check_circle_outline, size: 18),
