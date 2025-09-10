@@ -2,10 +2,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jamat_time/models/jamat_time_details.dart';
 import 'package:jamat_time/config.dart';
 import 'package:jamat_time/services/prayer_type_cache.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class JamatTimeService {
   static Future<Map<String, JamatTimeDetails>> fetchForMosque(int mosqueId) async {
-    // If Supabase is not configured, bail out gracefully
+    // Check if Supabase is configured
     if (AppConfig.supabaseUrl.isEmpty || AppConfig.supabaseAnonKey.isEmpty) {
       return {};
     }
@@ -13,15 +15,27 @@ class JamatTimeService {
     // Ensure prayer types are available (cached on first run)
     await PrayerTypeCache.ensureLoaded();
 
-    // Fetch active jamat times for the mosque
+    // Check if jamat times for this mosque are cached
+    final prefs = await SharedPreferences.getInstance();
+    final cachedJamatTimes = prefs.getString('jamat_times_mosque_$mosqueId');
+
+    if (cachedJamatTimes != null) {
+      // If cached, return the cached jamat times
+      final decoded = json.decode(cachedJamatTimes);
+      return Map<String, JamatTimeDetails>.from(
+        decoded.map((key, value) => MapEntry(key, JamatTimeDetails(jamatTime: value['jamatTime']))),
+      );
+    }
+
+    // Fetch jamat times from Supabase if not cached
     final List<dynamic> jtRows = await client
         .from('jamat_times')
-        .select('id, mosque_id, prayer_type_id, jamat_time, start_date, end_date')
+        .select('id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at')
         .eq('mosque_id', mosqueId);
 
     if (jtRows.isEmpty) return {};
 
-    // Use cached prayer_type names
+    // Map prayer type names using the cached names from PrayerTypeCache
     final idToName = <int, String>{};
     for (final r in jtRows) {
       final id = (r['prayer_type_id'] as num?)?.toInt();
@@ -35,7 +49,6 @@ class JamatTimeService {
 
     final result = <String, JamatTimeDetails>{};
     for (final row in jtRows) {
-      // Filter by current date window
       DateTime start = _toDate(row['start_date']);
       DateTime? end = row['end_date'] != null ? _toDate(row['end_date']) : null;
       final isActive = !todayDate.isBefore(start) && (end == null || !todayDate.isAfter(end));
@@ -52,11 +65,13 @@ class JamatTimeService {
       result[key] = JamatTimeDetails(jamatTime: hhmm);
     }
 
+    // Cache the jamat times locally for the mosque
+    await prefs.setString('jamat_times_mosque_$mosqueId', json.encode(result.map((key, value) => MapEntry(key, {'jamatTime': value.jamatTime}))));
+
     return result;
   }
 
   static String _onlyHHmm(String t) {
-    // Input like HH:mm:ss or HH:mm
     if (t.isEmpty) return '--:--';
     final parts = t.split(':');
     if (parts.length < 2) return t;
@@ -69,7 +84,6 @@ class JamatTimeService {
       final d = DateTime.tryParse(v);
       if (d != null) return DateTime(d.year, d.month, d.day);
     }
-    // Fallback to today if parsing fails
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
   }
@@ -82,7 +96,6 @@ class JamatTimeService {
     if (n.contains('asr') || n.contains('asar')) return 'Asr';
     if (n.contains('maghrib') || n.contains('magrib')) return 'Maghrib';
     if (n.contains('isha') || n.contains('esha')) return 'Isha';
-    // Bengali (basic matching)
     if (name.contains('ফজর')) return 'Fajr';
     if (name.contains('যোহর') || name.contains('জোহর') || name.contains('জোহার')) return 'Dhuhr';
     if (name.contains('আসর')) return 'Asr';

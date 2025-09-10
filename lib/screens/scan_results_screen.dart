@@ -160,7 +160,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
   Future<List<_NearbyPlace>> _fetchSupabaseMosques(double lat, double lon) async {
     try {
       // Bounding box ~5km
-      const radiusMeters = 50000000.0;
+      const radiusMeters = 5000.0;
       const metersPerDegLat = 111000.0;
       const dLat = radiusMeters / metersPerDegLat;
       final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
@@ -489,13 +489,13 @@ extension on _ScanResultsScreenState {
                     bool femaleAllowed = place.femaleAllowed ?? false;
 
                     // If no Supabase id from the list, try nearest match by lat/lon
-                    if (supaId == null) {
-                      final match = await _findNearestSupabaseMosque(place.lat, place.lon, nameHint: place.name);
-                      if (match != null) {
-                        supaId = (match['id'] as num?)?.toInt();
-                        femaleAllowed = (match['is_female_accessible'] as bool?) ?? femaleAllowed;
-                      }
-                    }
+                    // if (supaId == null) {
+                      // final match = await _findNearestSupabaseMosque(place.lat, place.lon, nameHint: place.name);
+                      // if (match != null) {
+                      //   supaId = (match['id'] as num?)?.toInt();
+                      //   femaleAllowed = (match['is_female_accessible'] as bool?) ?? femaleAllowed;
+                      // }
+                    // }
 
                     if (supaId != null) {
                       try {
