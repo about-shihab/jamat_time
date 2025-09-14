@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/screens/contribution_screen.dart';
+import 'package:jamat_time/screens/scan_results_screen.dart';
+import 'package:jamat_time/screens/edit_jamat_time_screen.dart';
 import 'package:jamat_time/screens/events_view.dart';
 import 'package:jamat_time/screens/home_view.dart';
 import 'package:jamat_time/screens/qibla_view.dart';
@@ -55,11 +58,23 @@ class _MainScreenState extends State<MainScreen> {
         children: views,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
+        onPressed: () async {
+          // Contribute flow: pick nearby mosque, then enter jamat times
+          final selected = await Navigator.push(
             context,
-            MaterialPageRoute(
-                builder: (context) => const ContributionScreen())),
-        child: const Icon(Icons.add),
+            MaterialPageRoute(builder: (context) => const ScanResultsScreen()),
+          );
+          if (selected is Mosque && context.mounted) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => EditJamatTimeScreen(mosque: selected),
+              ),
+            );
+          }
+        },
+        shape: const _MosqueDomeBorder(),
+        child: const Icon(Icons.edit_note_outlined),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNav(),
@@ -71,7 +86,10 @@ class _MainScreenState extends State<MainScreen> {
       height: 70,
       elevation: 0,
       color: Theme.of(context).cardColor.withOpacity(0.5),
-      shape: const CircularNotchedRectangle(),
+      shape: const AutomaticNotchedShape(
+        _MosqueDomeBorder(),
+        RoundedRectangleBorder(),
+      ),
       notchMargin: 8.0,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -98,4 +116,47 @@ class _MainScreenState extends State<MainScreen> {
       onPressed: () => _onItemTapped(index),
     );
   }
+}
+
+class _MosqueDomeBorder extends OutlinedBorder {
+  const _MosqueDomeBorder({super.side = BorderSide.none});
+
+  @override
+  OutlinedBorder copyWith({BorderSide? side}) => _MosqueDomeBorder(side: side ?? this.side);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    // A stylized mosque dome with a curved base
+    final w = rect.width;
+    final h = rect.height;
+    final top = rect.top + h * 0.05;
+    final baseY = rect.bottom - h * 0.18;
+    final leftBase = Offset(rect.left + w * 0.18, baseY);
+    final rightBase = Offset(rect.right - w * 0.18, baseY);
+    final peak = Offset(rect.left + w * 0.5, top);
+    final bottomCenter = Offset(rect.left + w * 0.5, rect.bottom);
+
+    final path = Path()
+      ..moveTo(leftBase.dx, leftBase.dy)
+      // Left shoulder up to peak (slightly bulged)
+      ..quadraticBezierTo(rect.left + w * 0.22, rect.top + h * 0.25, peak.dx, peak.dy)
+      // Right shoulder down to base
+      ..quadraticBezierTo(rect.right - w * 0.22, rect.top + h * 0.25, rightBase.dx, rightBase.dy)
+      // Curved base back to left base
+      ..quadraticBezierTo(bottomCenter.dx, rect.bottom, leftBase.dx, leftBase.dy)
+      ..close();
+    return path;
+  }
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
+    final deflated = rect.deflate(side.width);
+    return getOuterPath(deflated, textDirection: textDirection);
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) => _MosqueDomeBorder(side: side.scale(t));
 }
