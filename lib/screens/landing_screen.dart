@@ -128,6 +128,9 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         'city': m.city,
         'district': m.district,
         'fa': m.isFemaleAccessible,
+        'gpid': m.googlePlaceId,
+        'pid': m.providerId,
+        'prov': m.provider,
       };
       await prefs.setString('favorite_mosque', json.encode(map));
     } catch (_) {}
@@ -147,6 +150,9 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         longitude: (m['lon'] as num?)?.toDouble(),
         city: m['city'] as String?,
         district: m['district'] as String?,
+        googlePlaceId: m['gpid'] as String?,
+        providerId: m['pid'] as String?,
+        provider: m['prov'] as String?,
         isFemaleAccessible: (m['fa'] as bool?) ?? false,
         jamatTimes: const {},
         lastUpdatedAt: DateTime.now(),

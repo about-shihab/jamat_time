@@ -12,6 +12,8 @@ import 'package:jamat_time/screens/landing_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/widgets/next_jamat_card.dart';
+import 'package:jamat_time/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeView extends StatefulWidget {
   final Mosque favoriteMosque;
@@ -32,8 +34,7 @@ class _HomeViewState extends State<HomeView> {
   };
 
   Map<String, String>? _jamatTimes; // fetched from Supabase by mosque id
-  Map<String, String> get _effectiveJamatTimes => _jamatTimes ??
-      widget.favoriteMosque.jamatTimes.map((k, v) => MapEntry(k, v.jamatTime));
+  Set<String> _alarmsSet = {};
 
   Future<void> _handleSync() async {
     // Rescan nearby mosques: open results directly and replace MainScreen on choice
@@ -54,6 +55,7 @@ class _HomeViewState extends State<HomeView> {
   void initState() {
     super.initState();
     _loadJamatTimes();
+    _loadAlarmState();
   }
 
   @override
@@ -67,25 +69,67 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _loadJamatTimes() async {
     final id = widget.favoriteMosque.id;
-    if (id == null) return;
+    final gpid = widget.favoriteMosque.googlePlaceId;
+    final pid = widget.favoriteMosque.providerId;
     try {
-      final map = await JamatTimeService.fetchForMosque(id);
+      Map<String, String> out = {};
+      // Prefer googlePlaceId -> provider_id
+      if ((gpid != null && gpid.isNotEmpty) || (pid != null && pid.isNotEmpty)) {
+        final byGpOrPid = await JamatTimeService.fetchByPlaceOrProvider(
+          googlePlaceId: gpid,
+          providerId: pid,
+        );
+        out = byGpOrPid.map((k, v) => MapEntry(k, v.jamatTime));
+      }
+      if (out.isEmpty && id != null) {
+        final byId = await JamatTimeService.fetchForMosque(id);
+        out = byId.map((k, v) => MapEntry(k, v.jamatTime));
+      }
       if (!mounted) return;
-      if (map.isNotEmpty) {
+      if (out.isNotEmpty) {
         setState(() {
-          _jamatTimes = map.map((k, v) => MapEntry(k, v.jamatTime));
+          _jamatTimes = out;
         });
+        await _loadAlarmState();
       }
     } catch (_) {
       // ignore: keep fallback
     }
   }
 
-  String? _computeNextJamat() {
+  String _alarmKeyFor(String prayerName) {
+    final date = DateTime.now();
+    final ymd = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    final idPart = widget.favoriteMosque.googlePlaceId?.isNotEmpty == true
+        ? 'g:${widget.favoriteMosque.googlePlaceId}'
+        : (widget.favoriteMosque.id != null ? 'm:${widget.favoriteMosque.id}' : 'm:0');
+    return '$idPart:$ymd:$prayerName';
+  }
+
+  Future<void> _loadAlarmState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final list = prefs.getStringList('alarms_set') ?? [];
+      setState(() {
+        _alarmsSet = list.toSet();
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _markAlarmSet(String prayerName, {required int minutes}) async {
+    final key = _alarmKeyFor(prayerName);
+    _alarmsSet.add(key);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('alarms_set', _alarmsSet.toList());
+    } catch (_) {}
+    if (mounted) setState(() {});
+  }
+
+  String? _computeNextJamat(Map<String, String> jt) {
     final now = DateTime.now();
     DateTime? bestTime;
     String? bestName;
-    final jt = _effectiveJamatTimes;
     for (final entry in jt.entries) {
       final parsed = _parseToToday(entry.value);
       if (parsed == null) continue;
@@ -125,13 +169,77 @@ class _HomeViewState extends State<HomeView> {
 
   String _hhmm(DateTime dt) => '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
+  Future<int?> _askMinutesBefore() async {
+    return showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: const Text('Reminder before jamat'),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 5),
+              child: const Text('5 minutes before'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 10),
+              child: const Text('10 minutes before'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 15),
+              child: const Text('15 minutes before'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(context, 30),
+              child: const Text('30 minutes before'),
+            ),
+            const Divider(),
+            SimpleDialogOption(
+              onPressed: () async {
+                final res = await showDialog<int>(
+                  context: context,
+                  builder: (context) {
+                    final c = TextEditingController(text: '5');
+                    return AlertDialog(
+                      title: const Text('Custom minutes'),
+                      content: TextField(
+                        controller: c,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(hintText: 'Enter minutes'),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            final v = int.tryParse(c.text.trim());
+                            Navigator.pop(context, v == null || v < 0 ? 5 : v);
+                          },
+                          child: const Text('Set'),
+                        )
+                      ],
+                    );
+                  },
+                );
+                if (context.mounted) Navigator.pop(context, res);
+              },
+              child: const Text('Custom...'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _handleTrackMosque() async {
     final l10n = AppLocalizations.of(context)!;
+    final gpid = widget.favoriteMosque.googlePlaceId;
     final lat = widget.favoriteMosque.latitude;
     final lon = widget.favoriteMosque.longitude;
     final address = widget.favoriteMosque.address;
 
-    if ((lat == null || lon == null) && (address == null || address.isEmpty)) {
+    if ((gpid == null || gpid.isEmpty) && (lat == null || lon == null) && (address == null || address.isEmpty)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Location data not available for this mosque.")),
@@ -143,14 +251,16 @@ class _HomeViewState extends State<HomeView> {
       SnackBar(content: Text(l10n.openingMaps)),
     );
 
-    // Prioritize lat/lon for accuracy
-    final String query;
-    if (lat != null && lon != null) {
-      query = '$lat,$lon';
+    // Prefer Google Place ID when available
+    final Uri uri;
+    if (gpid != null && gpid.isNotEmpty) {
+      uri = Uri.parse('https://www.google.com/maps/place/?q=place_id:$gpid');
+    } else if (lat != null && lon != null) {
+      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
     } else {
-      query = Uri.encodeComponent(address!);
+      final query = Uri.encodeComponent(address!);
+      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
     }
-    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
 
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -311,9 +421,29 @@ class _HomeViewState extends State<HomeView> {
                 ],
               ),
             ),
+            // Last updated info
+            Builder(builder: (context) {
+              final lu = widget.favoriteMosque.lastUpdatedAt;
+              final by = widget.favoriteMosque.lastUpdatedBy;
+              if (lu == null && (by == null || by.isEmpty)) return const SizedBox.shrink();
+              final fmt = '${lu?.year.toString().padLeft(4, '0')}-${lu?.month.toString().padLeft(2, '0')}-${lu?.day.toString().padLeft(2, '0')}';
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8.0),
+                child: Text(
+                  'Updated $fmt by ${by ?? '—'}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).hintColor,
+                      ),
+                ),
+              );
+            }),
             // Next Jamat Card (if jamat times available)
             Builder(builder: (context){
-              final next = _computeNextJamat();
+              final timings = context.watch<PrayerTimesProvider>().timings;
+              final times = timings ?? _fallbackPrayerTimes;
+              final effectiveJt = _currentEffectiveJamatTimes(times);
+              final next = _computeNextJamat(effectiveJt);
               if (next == null) return const SizedBox.shrink();
               final parts = next.split('|');
               return Padding(
@@ -332,14 +462,70 @@ class _HomeViewState extends State<HomeView> {
                   prayerTime: _format12h(times[prayerName]!),
                   prayerEnd: _format12h(_endFor(prayerName, times)),
                   jamatTime: _format12h(
-                      _effectiveJamatTimes[prayerName] ?? '--:--'
+                      _currentEffectiveJamatTimes(times)[prayerName] ?? '--:--'
                   ),
                   icon: getIconForPrayer(prayerName),
+                  alarmSet: _alarmsSet.contains(_alarmKeyFor(prayerName)),
+                  onAlarmTap: () async {
+                    final jt = _currentEffectiveJamatTimes(times)[prayerName];
+                    if (jt == null || jt == '--:--') {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Jamat time not available')),
+                      );
+                      return;
+                    }
+                    final dt = _parseToToday(jt);
+                    if (dt == null) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invalid jamat time')),
+                      );
+                      return;
+                    }
+                    final minutes = await _askMinutesBefore();
+                    if (minutes == null) return;
+                    await NotificationService().scheduleNotification(prayerName, dt, minutes);
+                    await _markAlarmSet(prayerName, minutes: minutes);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Alarm set $minutes minutes before ${_localizedPrayerName(l10n, prayerName)}')),
+                    );
+                  },
                 )),
           ],
         ),
       ),
     );
+  }
+
+  Map<String, String> _currentEffectiveJamatTimes(Map<String, String> prayerTimes) {
+    final jt = _jamatTimes;
+    if (jt != null && jt.values.any((v) => v.trim().isNotEmpty && v != '--:--')) {
+      return jt;
+    }
+    final stored = widget.favoriteMosque.jamatTimes.map((k, v) => MapEntry(k, v.jamatTime));
+    if (stored.values.any((v) => v.trim().isNotEmpty && v != '--:--')) {
+      return stored;
+    }
+    Map<String, int> offsets = const {
+      'Fajr': 5,
+      'Dhuhr': 10,
+      'Asr': 10,
+      'Maghrib': 5,
+      'Isha': 10,
+    };
+    final result = <String, String>{};
+    for (final k in ['Fajr','Dhuhr','Asr','Maghrib','Isha']) {
+      final base = prayerTimes[k];
+      if (base == null) continue;
+      final dt = _parseToToday(base);
+      if (dt == null) continue;
+      final add = offsets[k] ?? 5;
+      final jam = dt.add(Duration(minutes: add));
+      result[k] = _hhmm(jam);
+    }
+    return result;
   }
 
   IconData getIconForPrayer(String prayerName) {

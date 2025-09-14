@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:convert';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/event_model.dart';
 import '../models/jamat_time_details.dart';
 import '../models/mosque_model.dart';
-import '../widgets/event_card.dart';
 import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/l10n/app_localizations.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:jamat_time/config.dart';
+import 'package:jamat_time/services/masjid_near_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:jamat_time/widgets/aurora_background_painter.dart';
 
 class ScanResultsScreen extends StatefulWidget {
   final ValueChanged<Mosque>? onMosqueSelected;
@@ -24,15 +23,30 @@ class ScanResultsScreen extends StatefulWidget {
   State<ScanResultsScreen> createState() => _ScanResultsScreenState();
 }
 
-class _ScanResultsScreenState extends State<ScanResultsScreen> {
+class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTickerProviderStateMixin {
   List<_NearbyPlace> _places = [];
   bool _loading = true;
   String? _error;
+  final TextEditingController _searchController = TextEditingController();
+  String _query = '';
+  late final AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+    _searchController.addListener(() {
+      final q = _searchController.text.trim();
+      if (q != _query) setState(() => _query = q);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -47,7 +61,8 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     if (pos == null) {
       setState(() {
         _loading = false;
-        _error = context.read<LocationProvider>().error ?? 'Location unavailable';
+        _error =
+            context.read<LocationProvider>().error ?? 'Location unavailable';
       });
       return;
     }
@@ -61,16 +76,8 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
         });
         return;
       }
-      // Try Supabase table first if configured
-      List<_NearbyPlace> list = [];
-      if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
-        list = await _fetchSupabaseMosques(pos.latitude, pos.longitude);
-
-      }
-      if (list.isEmpty) {
-        // Fallback to OpenStreetMap (Overpass)
-        list = await _fetchOSMMosques(pos.latitude, pos.longitude);
-      }
+      // Fetch from MasjidNear API (2km, then fallback to 15km)
+      final list = await _fetchMasjidNearMosques(pos.latitude, pos.longitude);
       list.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
       setState(() {
         _places = list;
@@ -78,148 +85,47 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
       });
       if (list.isNotEmpty) {
         await _saveCache(pos.latitude, pos.longitude, list);
+        // Save to Supabase in background and attach ids if available
+        unawaited(_backgroundUpsertAndUpdate(list));
       }
     } catch (e) {
       // fallback to any cache (ignore radius)
-      final cachedAny = await _loadFromCache(pos.latitude, pos.longitude, ignoreRadius: true);
+      final cachedAny =
+          await _loadFromCache(pos.latitude, pos.longitude, ignoreRadius: true);
       setState(() {
-        _error = cachedAny.isEmpty ? 'Network error while fetching nearby mosques. Please try again.' : null;
+        _error = cachedAny.isEmpty
+            ? 'Network error while fetching nearby mosques. Please try again.'
+            : null;
         _places = cachedAny;
         _loading = false;
       });
     }
   }
 
-  Future<List<_NearbyPlace>> _fetchOSMMosques(double lat, double lon) async {
-    final endpoints = <String>[
-      'https://overpass-api.de/api/interpreter',
-      'https://overpass.kumi.systems/api/interpreter',
-      'https://overpass.osm.ch/api/interpreter',
-      'https://overpass.nchc.org.tw/api/interpreter',
-      'https://overpass.openstreetmap.ru/cgi/interpreter',
-    ];
-    for (final radius in <int>[3000, 5000, 8000]) {
-      final query = _buildOverpassQuery(lat, lon, radius);
-      for (final ep in endpoints) {
-        try {
-          final uri = Uri.parse(ep);
-          http.Response res;
-          try {
-            res = await http
-                .post(uri,
-                    headers: {
-                      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                    },
-                    body: {'data': query})
-                .timeout(const Duration(seconds: 8));
-          } on TimeoutException {
-            final getUri = Uri.parse('$ep?data=${Uri.encodeComponent(query)}');
-            res = await http.get(getUri).timeout(const Duration(seconds: 8));
-          }
-          if (res.statusCode != 200) continue;
-          final data = json.decode(res.body) as Map<String, dynamic>;
-          final elements = (data['elements'] as List?) ?? [];
-          if (elements.isEmpty) continue;
-          final results = <_NearbyPlace>[];
-          for (final raw in elements) {
-            final e = raw as Map<String, dynamic>;
-            final tagsRaw = e['tags'];
-            final Map<String, String> tags = tagsRaw is Map
-                ? tagsRaw.map((k, v) => MapEntry(k.toString(), v.toString()))
-                : <String, String>{};
-            final name = (tags['name'] ?? 'Mosque').toString();
-            final center = e['center'];
-            final latVal = e['lat'] ?? (center is Map ? center['lat'] : null);
-            final lonVal = e['lon'] ?? (center is Map ? center['lon'] : null);
-            final elLat = (latVal is num) ? latVal.toDouble() : null;
-            final elLon = (lonVal is num) ? lonVal.toDouble() : null;
-            if (elLat == null || elLon == null) continue;
-            final distance = _distanceKm(lat, lon, elLat, elLon);
-            final addr = [
-              tags['addr:street'],
-              tags['addr:suburb'],
-              tags['addr:city']
-            ].whereType<String>().where((p) => p.isNotEmpty).join(', ');
-            results.add(_NearbyPlace(
-              name: name,
-              address: addr.isEmpty ? (tags['name:en'] ?? 'Nearby Mosque') : addr,
-              lat: elLat,
-              lon: elLon,
-              distanceKm: distance,
-            ));
-          }
-          if (results.isNotEmpty) return results;
-        } catch (_) {
-          continue;
-        }
-      }
-    }
-    return <_NearbyPlace>[];
-  }
-
-  Future<List<_NearbyPlace>> _fetchSupabaseMosques(double lat, double lon) async {
-    try {
-      // Bounding box ~5km
-      const radiusMeters = 5000.0;
-      const metersPerDegLat = 111000.0;
-      const dLat = radiusMeters / metersPerDegLat;
-      final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
-      final minLat = lat - dLat;
-      final maxLat = lat + dLat;
-      final minLon = lon - dLon;
-      final maxLon = lon + dLon;
-
-      final client = Supabase.instance.client;
-      final resp = await client
-          .from('mosque_list')
-          .select('id, mosque_name, latitude, longitude, city, district, is_female_accessible')
-          .gte('latitude', minLat)
-          .lte('latitude', maxLat)
-          .gte('longitude', minLon)
-          .lte('longitude', maxLon);
-
-      final rows = (resp as List?) ?? [];
-      final results = <_NearbyPlace>[];
-      for (final row in rows) {
-        if (row is! Map) continue;
-        final name = (row['mosque_name'] ?? 'Mosque').toString();
-        final rLat = (row['latitude'] as num?)?.toDouble();
-        final rLon = (row['longitude'] as num?)?.toDouble();
-        if (rLat == null || rLon == null) continue;
-        final distance = _distanceKm(lat, lon, rLat, rLon);
-        final city = (row['city'] ?? '').toString();
-        final district = (row['district'] ?? '').toString();
-        final addr = [city, district].where((e) => e.isNotEmpty).join(', ');
+  Future<List<_NearbyPlace>> _fetchMasjidNearMosques(double lat, double lon) async {
+    final results = <_NearbyPlace>[];
+    Future<void> fetchWith(int radius) async {
+      final list = await MasjidNearService.search(lat: lat, lng: lon, radius: radius);
+      for (final p in list) {
+        final d = _distanceKm(lat, lon, p.lat, p.lon);
         results.add(_NearbyPlace(
-          id: (row['id'] as num?)?.toInt(),
-          name: name,
-          address: addr,
-          lat: rLat,
-          lon: rLon,
-          distanceKm: distance,
-          femaleAllowed: (row['is_female_accessible'] as bool?) ?? false,
+          id: p.supabaseId,
+          name: p.name,
+          address: p.address,
+          lat: p.lat,
+          lon: p.lon,
+          distanceKm: d,
+          femaleAllowed: p.femaleAllowed,
+          googlePlaceId: p.googlePlaceId,
+          providerId: p.providerId,
         ));
       }
-      results.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
-      return results;
-    } catch (_) {
-      return [];
     }
-  }
-
-  String _buildOverpassQuery(double lat, double lon, int radiusMeters) {
-    final r = radiusMeters;
-    return '[out:json][timeout:25];('
-        'node["amenity"="place_of_worship"]["religion"="muslim"](around:$r,$lat,$lon);'
-        'way["amenity"="place_of_worship"]["religion"="muslim"](around:$r,$lat,$lon);'
-        'relation["amenity"="place_of_worship"]["religion"="muslim"](around:$r,$lat,$lon);'
-        'node["building"="mosque"](around:$r,$lat,$lon);'
-        'way["building"="mosque"](around:$r,$lat,$lon);'
-        'relation["building"="mosque"](around:$r,$lat,$lon);'
-        'node["name"~"(?i)mosque|masjid"](around:$r,$lat,$lon);'
-        'way["name"~"(?i)mosque|masjid"](around:$r,$lat,$lon);'
-        'relation["name"~"(?i)mosque|masjid"](around:$r,$lat,$lon);'
-        ');out center tags;';
+    await fetchWith(2000);
+    if (results.isEmpty) {
+      await fetchWith(15000);
+    }
+    return results;
   }
 
   double _distanceKm(double lat1, double lon1, double lat2, double lon2) {
@@ -237,12 +143,12 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
 
   double _deg2rad(double deg) => deg * math.pi / 180.0;
 
-
-  Future<void> _saveCache(double centerLat, double centerLon, List<_NearbyPlace> places) async {
+  Future<void> _saveCache(
+      double centerLat, double centerLon, List<_NearbyPlace> places) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setDouble('osm_cache_center_lat', centerLat);
-      await prefs.setDouble('osm_cache_center_lon', centerLon);
+      await prefs.setDouble('mnm_cache_center_lat', centerLat);
+      await prefs.setDouble('mnm_cache_center_lon', centerLon);
       final jsonList = places
           .map((p) => {
                 'id': p.id,
@@ -250,21 +156,28 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
                 'address': p.address,
                 'lat': p.lat,
                 'lon': p.lon,
+                'gpid': p.googlePlaceId,
+                'pid': p.providerId,
                 'fa': p.femaleAllowed,
               })
           .toList();
-      await prefs.setString('osm_cache_places', json.encode(jsonList));
+      await prefs.setString('mnm_cache_places', json.encode(jsonList));
     } catch (_) {}
   }
 
-  Future<Map<String, dynamic>?> _findNearestSupabaseMosque(double lat, double lon, {String? nameHint}) async {
+  Future<Map<String, dynamic>?> _findNearestSupabaseMosque(
+      double lat, double lon,
+      {String? nameHint}) async {
     try {
       final client = Supabase.instance.client;
       // Small bounding box around the selected point (~250m)
       const metersPerDegLat = 111000.0;
       const radiusMeters = 250.0;
       final dLat = radiusMeters / metersPerDegLat;
-      final dLon = radiusMeters / (metersPerDegLat * math.cos(lat * math.pi / 180.0)).abs().clamp(1e-6, double.infinity);
+      final dLon = radiusMeters /
+          (metersPerDegLat * math.cos(lat * math.pi / 180.0))
+              .abs()
+              .clamp(1e-6, double.infinity);
       final minLat = lat - dLat;
       final maxLat = lat + dLat;
       final minLon = lon - dLon;
@@ -272,13 +185,16 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
 
       final resp = await client
           .from('mosque_list')
-          .select('id, mosque_name, latitude, longitude, city, district, is_female_accessible')
+          .select(
+              'id, mosque_name, latitude, longitude, city, address_desc, is_female_accessible, "googlePlaceId"')
           .gte('latitude', minLat)
           .lte('latitude', maxLat)
           .gte('longitude', minLon)
           .lte('longitude', maxLon);
 
-      final rows = (resp as List?)?.whereType<Map<String, dynamic>>().toList() ?? const [];
+      final rows =
+          (resp as List?)?.whereType<Map<String, dynamic>>().toList() ??
+              const [];
       if (rows.isEmpty) return null;
       // Find nearest by haversine distance
       Map<String, dynamic>? best;
@@ -299,12 +215,13 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     }
   }
 
-  Future<List<_NearbyPlace>> _loadFromCache(double lat, double lon, {bool ignoreRadius = false}) async {
+  Future<List<_NearbyPlace>> _loadFromCache(double lat, double lon,
+      {bool ignoreRadius = false}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final cLat = prefs.getDouble('osm_cache_center_lat');
-      final cLon = prefs.getDouble('osm_cache_center_lon');
-      final data = prefs.getString('osm_cache_places');
+      final cLat = prefs.getDouble('mnm_cache_center_lat');
+      final cLon = prefs.getDouble('mnm_cache_center_lon');
+      final data = prefs.getString('mnm_cache_places');
       if (cLat == null || cLon == null || data == null) return [];
       final distToCenter = _distanceKm(lat, lon, cLat, cLon);
       if (!ignoreRadius && distToCenter > 2.0) return [];
@@ -316,6 +233,8 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
                 lat: (e['lat'] as num).toDouble(),
                 lon: (e['lon'] as num).toDouble(),
                 distanceKm: 0,
+                googlePlaceId: (e['gpid'] as String?)?.toString(),
+                providerId: (e['pid'] as String?)?.toString(),
                 femaleAllowed: (e['fa'] as bool?) ?? false,
               ))
           .toList();
@@ -327,6 +246,10 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
           lat: p.lat,
           lon: p.lon,
           distanceKm: _distanceKm(lat, lon, p.lat, p.lon),
+          id: p.id,
+          googlePlaceId: p.googlePlaceId,
+          providerId: p.providerId,
+          femaleAllowed: p.femaleAllowed,
         );
       }
       list.sort((a, b) => a.distanceKm.compareTo(b.distanceKm));
@@ -336,36 +259,94 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> {
     }
   }
 
-  // FIX: Removed 'const' from the list declaration
-  final List<EventModel> _nearbyEvents = [
-    EventModel(title: "Weekly Tafsir Circle", location: "Baitul Falah Mosque Hall", eventTime: DateTime(2025, 9, 5, 19, 45), goingCount: 45),
-    EventModel(title: "Youth Community Iftar", location: "Chittagong Club Ltd.", eventTime: DateTime(2025, 9, 7, 18, 0), goingCount: 112),
-    EventModel(title: "Charity Drive for Orphans", location: "Nasirabad Community Center", eventTime: DateTime(2025, 9, 6, 11, 0), goingCount: 32),
-  ];
+  Future<void> _backgroundUpsertAndUpdate(List<_NearbyPlace> places) async {
+    try {
+      // Prepare conversion to service model
+      final svcPlaces = places
+          .map((p) => MasjidNearPlace(
+                name: p.name,
+                address: p.address,
+                lat: p.lat,
+                lon: p.lon,
+                googlePlaceId: p.googlePlaceId,
+                providerId: p.providerId,
+                femaleAllowed: p.femaleAllowed,
+              ))
+          .toList();
+      final maps = await MasjidNearService.syncToSupabaseNoUpdate(svcPlaces);
+      if (maps.byGpid.isEmpty && maps.byProviderId.isEmpty) {
+        return;
+      }
+      // Attach ids to matching places by googlePlaceId, then providerId
+      bool changed = false;
+      for (var i = 0; i < places.length; i++) {
+        final gp = places[i].googlePlaceId;
+        final pid = places[i].providerId;
+        int? id;
+        if (gp != null && gp.isNotEmpty) {
+          id = maps.byGpid[gp];
+        }
+        id ??= (pid != null && pid.isNotEmpty) ? maps.byProviderId[pid] : null;
+        final fa = (gp != null && gp.isNotEmpty)
+            ? maps.femaleByGpid[gp]
+            : ((pid != null && pid.isNotEmpty) ? maps.femaleByProviderId[pid] : null);
+        if ((id != null && places[i].id != id) || (fa != null && places[i].femaleAllowed != fa)) {
+          places[i] = _NearbyPlace(
+            id: id,
+            name: places[i].name,
+            address: places[i].address,
+            lat: places[i].lat,
+            lon: places[i].lon,
+            distanceKm: places[i].distanceKm,
+            femaleAllowed: fa ?? places[i].femaleAllowed,
+            googlePlaceId: places[i].googlePlaceId,
+            providerId: places[i].providerId,
+          );
+          changed = true;
+        }
+      }
+      if (changed) {
+        if (mounted) setState(() {});
+        final loc = context.read<LocationProvider>();
+        final pos = loc.position;
+        if (pos != null) {
+          await _saveCache(pos.latitude, pos.longitude, places);
+        }
+      }
+    } catch (_) {}
+  }
+
+  // Events removed per UX
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.scanResults),
-          bottom: TabBar(tabs: [Tab(text: l10n.nearbyMosques), Tab(text: l10n.nearbyEvents)]),
-        ),
-        body: TabBarView(
-          children: [
-            // Mosques Tab
-            _buildMosquesTab(context),
-            // Events Tab
-            ListView.builder(
-              itemCount: _nearbyEvents.length,
-              itemBuilder: (context, index) {
-                return EventCard(event: _nearbyEvents[index]);
-              },
+    final theme = Theme.of(context);
+    final color1 = theme.primaryColor.withOpacity(0.3);
+    final color2 = theme.scaffoldBackgroundColor;
+    final color3 = theme.cardColor.withOpacity(0.3);
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        title: Text(l10n.scanResults),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: Stack(
+        children: [
+          IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: AuroraBackgroundPainter(
+                animation: _animationController,
+                color1: color1,
+                color2: color2,
+                color3: color3,
+              ),
             ),
-          ],
-        ),
+          ),
+          _buildMosquesTab(context),
+        ],
       ),
     );
   }
@@ -390,6 +371,8 @@ class _NearbyPlace {
   final double lon;
   final double distanceKm;
   final bool? femaleAllowed;
+  final String? googlePlaceId;
+  final String? providerId;
   _NearbyPlace({
     this.id,
     required this.name,
@@ -398,6 +381,8 @@ class _NearbyPlace {
     required this.lon,
     required this.distanceKm,
     this.femaleAllowed,
+    this.googlePlaceId,
+    this.providerId,
   });
 }
 
@@ -437,15 +422,41 @@ extension on _ScanResultsScreenState {
     if (_places.isEmpty) {
       return const Center(child: Text('No nearby mosques found'));
     }
+    final filtered = _query.isEmpty
+        ? _places
+        : _places
+            .where((p) => p.name.toLowerCase().contains(_query.toLowerCase()) ||
+                p.address.toLowerCase().contains(_query.toLowerCase()))
+            .toList();
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      itemCount: _places.length,
+      itemCount: filtered.length + 1,
       separatorBuilder: (_, __) => const SizedBox(height: 10),
       itemBuilder: (context, index) {
-        final place = _places[index];
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.searchHint,
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Theme.of(context).cardColor.withOpacity(0.6),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          );
+        }
+        final place = filtered[index - 1];
         return Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           color: Theme.of(context).cardColor.withOpacity(0.8),
           child: Padding(
             padding: const EdgeInsets.all(14.0),
@@ -453,7 +464,8 @@ extension on _ScanResultsScreenState {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CircleAvatar(
-                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                  backgroundColor:
+                      Theme.of(context).primaryColor.withOpacity(0.1),
                   foregroundColor: Theme.of(context).primaryColor,
                   child: const Icon(Icons.mosque_outlined),
                 ),
@@ -462,16 +474,22 @@ extension on _ScanResultsScreenState {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(place.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
+                      Text(place.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontSize: 18)),
                       const SizedBox(height: 4),
                       if (place.address.isNotEmpty)
-                        Text(place.address, style: Theme.of(context).textTheme.bodyMedium),
+                        Text(place.address,
+                            style: Theme.of(context).textTheme.bodyMedium),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 8,
                         runSpacing: 6,
                         children: [
-                          _chip(context, "${place.distanceKm.toStringAsFixed(2)} km"),
+                          _chip(context,
+                              "${place.distanceKm.toStringAsFixed(2)} km"),
                           if (place.femaleAllowed == true)
                             _chip(context, "Women allowed"),
                         ],
@@ -482,37 +500,41 @@ extension on _ScanResultsScreenState {
                 const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    // Try to enrich with Supabase jamat times if we have an id
+                    // Enrich with jamat times by googlePlaceId first, else provider_id
                     Map<String, JamatTimeDetails> jamat = const {};
-                    String updatedBy = 'OSM';
+                    String updatedBy = 'MasjidNear';
                     int? supaId = place.id;
                     bool femaleAllowed = place.femaleAllowed ?? false;
 
-                    // If no Supabase id from the list, try nearest match by lat/lon
-                    // if (supaId == null) {
-                      // final match = await _findNearestSupabaseMosque(place.lat, place.lon, nameHint: place.name);
-                      // if (match != null) {
-                      //   supaId = (match['id'] as num?)?.toInt();
-                      //   femaleAllowed = (match['is_female_accessible'] as bool?) ?? femaleAllowed;
-                      // }
-                    // }
-
-                    if (supaId != null) {
-                      try {
-                        final fetched = await JamatTimeService.fetchForMosque(supaId);
-                        if (fetched.isNotEmpty) {
-                          jamat = fetched;
+                    try {
+                      final fetched = await JamatTimeService.fetchByPlaceOrProvider(
+                        googlePlaceId: place.googlePlaceId,
+                        providerId: place.providerId,
+                      );
+                      if (fetched.isNotEmpty) {
+                        jamat = fetched;
+                        updatedBy = 'Supabase';
+                      } else if (supaId != null) {
+                        // Fallback to mosque_id when available
+                        final fallback = await JamatTimeService.fetchForMosque(supaId);
+                        if (fallback.isNotEmpty) {
+                          jamat = fallback;
                           updatedBy = 'Supabase';
                         }
-                      } catch (_) {}
-                    }
+                      }
+                    } catch (_) {}
 
                     final mosque = Mosque(
                       id: supaId,
                       name: place.name,
-                      address: place.address.isEmpty ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}' : place.address,
+                      address: place.address.isEmpty
+                          ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}'
+                          : place.address,
                       latitude: place.lat,
                       longitude: place.lon,
+                      googlePlaceId: place.googlePlaceId,
+                      provider: 'masjidnear.me',
+                      providerId: place.providerId,
                       isFemaleAccessible: femaleAllowed,
                       lastUpdatedAt: DateTime.now(),
                       lastUpdatedBy: updatedBy,
@@ -533,7 +555,8 @@ extension on _ScanResultsScreenState {
                   icon: const Icon(Icons.check_circle_outline, size: 18),
                   label: const Text('Select'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                   ),
                 ),
               ],

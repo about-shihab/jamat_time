@@ -16,4 +16,11 @@ class AppConfig {
     defaultValue:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54dnVpdm5wZXV2Y25pbWltbmlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTczNTQ4MTUsImV4cCI6MjA3MjkzMDgxNX0.Tf7o4b5AKj2Kgpa0pF2ifuEFz-AHMqvylndO8CrMsew',
   );
+
+  // MasjidNear API base (search endpoint). Changeable via dart-define.
+  // Example: flutter run --dart-define=MASJIDNEAR_API_BASE=https://api.masjidnear.me/v1/masjids/search
+  static const masjidNearApiBase = String.fromEnvironment(
+    'MASJIDNEAR_API_BASE',
+    defaultValue: 'https://api.masjidnear.me/v1/masjids/search',
+  );
 }

@@ -114,8 +114,9 @@ class _CustomAppBarState extends State<CustomAppBar> {
         children: [
           Text(
             '${l10n.today}, $gregorianDate',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
           ),
           Text(

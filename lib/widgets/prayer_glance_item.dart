@@ -8,6 +8,8 @@ class PrayerGlanceItem extends StatelessWidget {
   final String jamatTime;
   final IconData icon;
   final bool isNext;
+  final VoidCallback? onAlarmTap;
+  final bool alarmSet;
 
   const PrayerGlanceItem({
     super.key,
@@ -17,6 +19,8 @@ class PrayerGlanceItem extends StatelessWidget {
     required this.jamatTime,
     required this.icon,
     this.isNext = false,
+    this.onAlarmTap,
+    this.alarmSet = false,
   });
 
   @override
@@ -60,13 +64,32 @@ class PrayerGlanceItem extends StatelessWidget {
                   child: Text(
                     "$prayerTime - $prayerEnd",
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    overflow: TextOverflow.fade,
+                    softWrap: false,
                   ),
                 ),
               ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
+          // Centered alarm icon
+          SizedBox(
+            width: 44,
+            child: Center(
+              child: IconButton(
+                onPressed: onAlarmTap,
+                tooltip: 'Set alarm',
+                icon: Icon(
+                  alarmSet ? Icons.alarm_on : Icons.alarm_add_outlined,
+                  color: alarmSet
+                      ? Theme.of(context).primaryColor
+                      : Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
@@ -80,7 +103,7 @@ class PrayerGlanceItem extends StatelessWidget {
                 Text(jamatTime, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18, color: Theme.of(context).hintColor)),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

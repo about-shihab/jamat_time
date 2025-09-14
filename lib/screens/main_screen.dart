@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import 'package:jamat_time/models/mosque_model.dart';
 import 'package:jamat_time/screens/contribution_screen.dart';
 import 'package:jamat_time/screens/scan_results_screen.dart';
@@ -74,6 +73,8 @@ class _MainScreenState extends State<MainScreen> {
           }
         },
         shape: const _MosqueDomeBorder(),
+        backgroundColor: const Color(0xFF006A71),
+        foregroundColor: Colors.white,
         child: const Icon(Icons.edit_note_outlined),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -86,10 +87,7 @@ class _MainScreenState extends State<MainScreen> {
       height: 70,
       elevation: 0,
       color: Theme.of(context).cardColor.withOpacity(0.5),
-      shape: const AutomaticNotchedShape(
-        _MosqueDomeBorder(),
-        RoundedRectangleBorder(),
-      ),
+      shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
