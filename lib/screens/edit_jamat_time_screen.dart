@@ -30,6 +30,7 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
   bool _femaleAccessible = false;
   bool _wheelchairFacility = false;
   late final AnimationController _animationController;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -76,6 +77,7 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
       'Isha': _ishaController.text.trim(),
     };
     unawaited(() async {
+      if (mounted) setState(() => _saving = true);
       final ok = await JamatTimeService.saveMosqueAndTimes(
         mosque: widget.mosque,
         jamatTimesText: map,
@@ -90,10 +92,20 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(ok ? l10n.thankYouContribution : 'Failed to save. Please try again.'),
-          backgroundColor: Theme.of(context).primaryColor,
+          content: Row(
+            children: [
+              Icon(ok ? Icons.check_circle_outline : Icons.error_outline,
+                  color: Colors.white),
+              const SizedBox(width: 8),
+              Expanded(child: Text(ok ? l10n.thankYouContribution : 'Failed to save. Please try again.')),
+            ],
+          ),
+          backgroundColor: ok
+              ? Colors.green.shade600
+              : Theme.of(context).colorScheme.error,
         ),
       );
+      if (mounted) setState(() => _saving = false);
       if (ok) {
         int count = 0;
         Navigator.of(context).popUntil((_) => count++ >= 2);
@@ -172,10 +184,12 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.save_alt_outlined),
-              label: Text(AppLocalizations.of(context)!.save),
-              onPressed: _saveTimes,
+           child: ElevatedButton.icon(
+             icon: const Icon(Icons.save_alt_outlined),
+              label: _saving
+                  ? const Text('Saving...')
+                  : Text(AppLocalizations.of(context)!.save),
+              onPressed: _saving ? null : _saveTimes,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

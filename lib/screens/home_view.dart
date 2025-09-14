@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
 import 'package:jamat_time/models/mosque_model.dart';
+import 'package:jamat_time/models/jamat_time_details.dart';
 import 'package:jamat_time/widgets/custom_app_bar.dart';
 import 'package:jamat_time/widgets/prayer_glance_item.dart';
 import 'package:jamat_time/l10n/app_localizations.dart';
@@ -9,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:jamat_time/providers/prayer_times_provider.dart';
 import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/screens/landing_screen.dart';
+import 'package:jamat_time/screens/edit_jamat_time_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/widgets/next_jamat_card.dart';
@@ -254,12 +256,12 @@ class _HomeViewState extends State<HomeView> {
     // Prefer Google Place ID when available
     final Uri uri;
     if (gpid != null && gpid.isNotEmpty) {
-      uri = Uri.parse('https://www.google.com/maps/place/?q=place_id:$gpid');
+      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=place_id:$gpid');
     } else if (lat != null && lon != null) {
-      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lon');
     } else {
       final query = Uri.encodeComponent(address!);
-      uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$query');
+      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$query');
     }
 
     if (await canLaunchUrl(uri)) {
@@ -423,6 +425,9 @@ class _HomeViewState extends State<HomeView> {
             ),
             // Last updated info
             Builder(builder: (context) {
+              final hasFetched = _jamatTimes != null && _jamatTimes!.values.any((v) => v.trim().isNotEmpty && v != '--:--');
+              final hasStored = widget.favoriteMosque.jamatTimes.values.any((v) => v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
+              if (!(hasFetched || hasStored)) return const SizedBox.shrink();
               final lu = widget.favoriteMosque.lastUpdatedAt;
               final by = widget.favoriteMosque.lastUpdatedBy;
               if (lu == null && (by == null || by.isEmpty)) return const SizedBox.shrink();
@@ -438,19 +443,63 @@ class _HomeViewState extends State<HomeView> {
                 ),
               );
             }),
-            // Next Jamat Card (if jamat times available)
-            Builder(builder: (context){
+            // Next Jamat removed per new UX
+            // Expected times banner with update CTA if using calculated times
+            Builder(builder: (context) {
               final timings = context.watch<PrayerTimesProvider>().timings;
               final times = timings ?? _fallbackPrayerTimes;
-              final effectiveJt = _currentEffectiveJamatTimes(times);
-              final next = _computeNextJamat(effectiveJt);
-              if (next == null) return const SizedBox.shrink();
-              final parts = next.split('|');
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: NextJamatCard(
-                  prayerName: _localizedPrayerName(l10n, parts[0]),
-                  prayerTime: parts[1],
+              final hasFetched = _jamatTimes != null && _jamatTimes!.values.any((v) => v.trim().isNotEmpty && v != '--:--');
+              final hasStored = widget.favoriteMosque.jamatTimes.values.any((v) => v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
+              final isExpected = !(hasFetched || hasStored);
+              if (!isExpected) return const SizedBox.shrink();
+              final expectedJt = _currentEffectiveJamatTimes(times);
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.25)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18, color: Theme.of(context).primaryColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text('Expected jamat time • No jamat time found', style: Theme.of(context).textTheme.bodySmall),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        final expectedMap = expectedJt.map((k, v) => MapEntry(k, JamatTimeDetails(jamatTime: v)));
+                        final m = Mosque(
+                          id: widget.favoriteMosque.id,
+                          name: widget.favoriteMosque.name,
+                          address: widget.favoriteMosque.address,
+                          latitude: widget.favoriteMosque.latitude,
+                          longitude: widget.favoriteMosque.longitude,
+                          city: widget.favoriteMosque.city,
+                          district: widget.favoriteMosque.district,
+                          isFemaleAccessible: widget.favoriteMosque.isFemaleAccessible,
+                          createdBy: widget.favoriteMosque.createdBy,
+                          createdAt: widget.favoriteMosque.createdAt,
+                          googlePlaceId: widget.favoriteMosque.googlePlaceId,
+                          provider: widget.favoriteMosque.provider,
+                          providerId: widget.favoriteMosque.providerId,
+                          phone: widget.favoriteMosque.phone,
+                          website: widget.favoriteMosque.website,
+                          capacity: widget.favoriteMosque.capacity,
+                          wheelchairFacility: widget.favoriteMosque.wheelchairFacility,
+                          imamName: widget.favoriteMosque.imamName,
+                          muezzinName: widget.favoriteMosque.muezzinName,
+                          jamatTimes: expectedMap,
+                          lastUpdatedAt: widget.favoriteMosque.lastUpdatedAt,
+                          lastUpdatedBy: widget.favoriteMosque.lastUpdatedBy,
+                        );
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => EditJamatTimeScreen(mosque: m)));
+                      },
+                      child: const Text('Add jamat time'),
+                    )
+                  ],
                 ),
               );
             }),
