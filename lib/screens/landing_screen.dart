@@ -168,7 +168,7 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     await loc.ensureLocation();
     if (loc.position != null) {
       final pt = context.read<PrayerTimesProvider>();
-      await pt.fetchByLatLng(loc.position!.latitude, loc.position!.longitude);
+      await pt.fetchMonthlyPrayerTimes(loc.position!.latitude, loc.position!.longitude);
     }
   }
 

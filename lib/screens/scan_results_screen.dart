@@ -453,113 +453,108 @@ extension on _ScanResultsScreenState {
           );
         }
         final place = filtered[index - 1];
-        return Card(
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          color: Theme.of(context).cardColor.withOpacity(0.8),
-          child: Padding(
-            padding: const EdgeInsets.all(14.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  backgroundColor:
-                      Theme.of(context).primaryColor.withOpacity(0.1),
-                  foregroundColor: Theme.of(context).primaryColor,
-                  child: const Icon(Icons.mosque_outlined),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(place.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(fontSize: 18)),
-                      const SizedBox(height: 4),
-                      if (place.address.isNotEmpty)
-                        Text(place.address,
-                            style: Theme.of(context).textTheme.bodyMedium),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          _chip(context,
-                              "${place.distanceKm.toStringAsFixed(2)} km"),
-                          if (place.femaleAllowed == true)
-                            _chip(context, "Women allowed"),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    // Enrich with jamat times by googlePlaceId first, else provider_id
-                    Map<String, JamatTimeDetails> jamat = const {};
-                    String updatedBy = 'MasjidNear';
-                    int? supaId = place.id;
-                    bool femaleAllowed = place.femaleAllowed ?? false;
+        return InkWell(
+          onTap: () async {
+            // Enrich with jamat times by googlePlaceId first, else provider_id
+            Map<String, JamatTimeDetails> jamat = const {};
+            String updatedBy = 'MasjidNear';
+            int? supaId = place.id;
+            bool femaleAllowed = place.femaleAllowed ?? false;
 
-                    try {
-                      final fetched = await JamatTimeService.fetchByPlaceOrProvider(
-                        googlePlaceId: place.googlePlaceId,
-                        providerId: place.providerId,
-                      );
-                      if (fetched.isNotEmpty) {
-                        jamat = fetched;
-                        updatedBy = 'Supabase';
-                      } else if (supaId != null) {
-                        // Fallback to mosque_id when available
-                        final fallback = await JamatTimeService.fetchForMosque(supaId);
-                        if (fallback.isNotEmpty) {
-                          jamat = fallback;
-                          updatedBy = 'Supabase';
-                        }
-                      }
-                    } catch (_) {}
+            try {
+              final fetched = await JamatTimeService.fetchByPlaceOrProvider(
+                googlePlaceId: place.googlePlaceId,
+                providerId: place.providerId,
+              );
+              if (fetched.isNotEmpty) {
+                jamat = fetched;
+                updatedBy = 'Supabase';
+              } else if (supaId != null) {
+                // Fallback to mosque_id when available
+                final fallback = await JamatTimeService.fetchForMosque(supaId);
+                if (fallback.isNotEmpty) {
+                  jamat = fallback;
+                  updatedBy = 'Supabase';
+                }
+              }
+            } catch (_) {}
 
-                    final mosque = Mosque(
-                      id: supaId,
-                      name: place.name,
-                      address: place.address.isEmpty
-                          ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}'
-                          : place.address,
-                      latitude: place.lat,
-                      longitude: place.lon,
-                      googlePlaceId: place.googlePlaceId,
-                      provider: 'masjidnear.me',
-                      providerId: place.providerId,
-                      isFemaleAccessible: femaleAllowed,
-                      lastUpdatedAt: DateTime.now(),
-                      lastUpdatedBy: updatedBy,
-                      jamatTimes: jamat.isNotEmpty
-                          ? jamat
-                          : {
-                              'Fajr': JamatTimeDetails(jamatTime: '--:--'),
-                              'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
-                              'Asr': JamatTimeDetails(jamatTime: '--:--'),
-                              'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
-                              'Isha': JamatTimeDetails(jamatTime: '--:--'),
-                            },
-                    );
-                    widget.onMosqueSelected?.call(mosque);
-                    if (!context.mounted) return;
-                    Navigator.pop(context, mosque);
-                  },
-                  icon: const Icon(Icons.check_circle_outline, size: 18),
-                  label: const Text('Select'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+            final mosque = Mosque(
+              id: supaId,
+              name: place.name,
+              address: place.address.isEmpty
+                  ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}'
+                  : place.address,
+              latitude: place.lat,
+              longitude: place.lon,
+              googlePlaceId: place.googlePlaceId,
+              provider: 'masjidnear.me',
+              providerId: place.providerId,
+              isFemaleAccessible: femaleAllowed,
+              lastUpdatedAt: DateTime.now(),
+              lastUpdatedBy: updatedBy,
+              jamatTimes: jamat.isNotEmpty
+                  ? jamat
+                  : {
+                      'Fajr': JamatTimeDetails(jamatTime: '--:--'),
+                      'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
+                      'Asr': JamatTimeDetails(jamatTime: '--:--'),
+                      'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
+                      'Isha': JamatTimeDetails(jamatTime: '--:--'),
+                    },
+            );
+            widget.onMosqueSelected?.call(mosque);
+            if (!context.mounted) return;
+            Navigator.pop(context, mosque);
+          },
+          child: Card(
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            color: Theme.of(context).cardColor.withOpacity(0.8),
+            child: Padding(
+              padding: const EdgeInsets.all(14.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor:
+                        Theme.of(context).primaryColor.withOpacity(0.1),
+                    foregroundColor: Theme.of(context).primaryColor,
+                    child: const Icon(Icons.mosque_outlined),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(place.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontSize: 18)),
+                        const SizedBox(height: 4),
+                        if (place.address.isNotEmpty)
+                          Text(place.address,
+                              style: Theme.of(context).textTheme.bodyMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            _chip(context,
+                                "${place.distanceKm.toStringAsFixed(2)} km"),
+                            if (place.femaleAllowed == true)
+                              _chip(context, "Women allowed"),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.arrow_forward_ios, color: Theme.of(context).primaryColor, size: 18),
+                ],
+              ),
             ),
           ),
         );
