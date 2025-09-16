@@ -460,7 +460,9 @@ class _WordCard extends StatelessWidget {
                 children: [
                   if (word.occurrence != null)
                     Chip(
-                      label: Text(t('Occurs ${word.occurrence} times', '${word.occurrence} বার এসেছে')),
+                      label: Text(isBn
+                          ? '${word.occurrence} বার এসেছে'
+                          : 'Occurs ${word.occurrence} times'),
                       labelStyle: theme.textTheme.labelMedium?.copyWith(
                         color: theme.colorScheme.onSecondaryContainer,
                         fontWeight: FontWeight.w700,
@@ -490,7 +492,7 @@ class _WordCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(t('Translation','অনুবাদ'),
+                        Text(isBn ? 'অনুবাদ' : 'Translation',
                             style: theme.textTheme.labelLarge
                                 ?.copyWith(color: theme.hintColor)),
                         const SizedBox(height: 6),
@@ -511,7 +513,7 @@ class _WordCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(t('Transliteration','উচ্চারণ'),
+                        Text(isBn ? 'উচ্চারণ' : 'Transliteration',
                             style: theme.textTheme.labelLarge
                                 ?.copyWith(color: theme.hintColor)),
                         const SizedBox(height: 6),
