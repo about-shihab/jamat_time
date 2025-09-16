@@ -16,25 +16,6 @@ import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/widgets/next_jamat_card.dart';
 import 'package:jamat_time/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'package:flutter/material.dart';
-import 'package:hijri/hijri_calendar.dart';
-import 'package:intl/intl.dart';
-import 'package:jamat_time/models/mosque_model.dart';
-import 'package:jamat_time/models/jamat_time_details.dart';
-import 'package:jamat_time/widgets/custom_app_bar.dart';
-import 'package:jamat_time/widgets/prayer_glance_item.dart';
-import 'package:jamat_time/l10n/app_localizations.dart';
-import 'package:provider/provider.dart';
-import 'package:jamat_time/providers/prayer_times_provider.dart';
-import 'package:jamat_time/screens/scan_results_screen.dart';
-import 'package:jamat_time/screens/landing_screen.dart';
-import 'package:jamat_time/screens/edit_jamat_time_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:jamat_time/services/jamat_time_service.dart';
-import 'package:jamat_time/widgets/next_jamat_card.dart';
-import 'package:jamat_time/notification_service.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jamat_time/providers/location_provider.dart';
 
 class HomeView extends StatefulWidget {
@@ -630,6 +611,7 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
+/*
 import 'package:flutter/material.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
@@ -1251,6 +1233,7 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 }
+*/
 
 String _format12h(String time24) {
   // Accept "HH:mm" or already formatted values
