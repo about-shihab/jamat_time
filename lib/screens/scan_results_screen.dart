@@ -23,7 +23,8 @@ class ScanResultsScreen extends StatefulWidget {
   State<ScanResultsScreen> createState() => _ScanResultsScreenState();
 }
 
-class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTickerProviderStateMixin {
+class _ScanResultsScreenState extends State<ScanResultsScreen>
+    with SingleTickerProviderStateMixin {
   List<_NearbyPlace> _places = [];
   bool _loading = true;
   String? _error;
@@ -34,7 +35,9 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 40))
+          ..repeat();
     _searchController.addListener(() {
       final q = _searchController.text.trim();
       if (q != _query) setState(() => _query = q);
@@ -102,10 +105,12 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTicker
     }
   }
 
-  Future<List<_NearbyPlace>> _fetchMasjidNearMosques(double lat, double lon) async {
+  Future<List<_NearbyPlace>> _fetchMasjidNearMosques(
+      double lat, double lon) async {
     final results = <_NearbyPlace>[];
     Future<void> fetchWith(int radius) async {
-      final list = await MasjidNearService.search(lat: lat, lng: lon, radius: radius);
+      final list =
+          await MasjidNearService.search(lat: lat, lng: lon, radius: radius);
       for (final p in list) {
         final d = _distanceKm(lat, lon, p.lat, p.lon);
         results.add(_NearbyPlace(
@@ -121,6 +126,7 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTicker
         ));
       }
     }
+
     await fetchWith(2000);
     if (results.isEmpty) {
       await fetchWith(15000);
@@ -289,8 +295,11 @@ class _ScanResultsScreenState extends State<ScanResultsScreen> with SingleTicker
         id ??= (pid != null && pid.isNotEmpty) ? maps.byProviderId[pid] : null;
         final fa = (gp != null && gp.isNotEmpty)
             ? maps.femaleByGpid[gp]
-            : ((pid != null && pid.isNotEmpty) ? maps.femaleByProviderId[pid] : null);
-        if ((id != null && places[i].id != id) || (fa != null && places[i].femaleAllowed != fa)) {
+            : ((pid != null && pid.isNotEmpty)
+                ? maps.femaleByProviderId[pid]
+                : null);
+        if ((id != null && places[i].id != id) ||
+            (fa != null && places[i].femaleAllowed != fa)) {
           places[i] = _NearbyPlace(
             id: id,
             name: places[i].name,
@@ -425,7 +434,8 @@ extension on _ScanResultsScreenState {
     final filtered = _query.isEmpty
         ? _places
         : _places
-            .where((p) => p.name.toLowerCase().contains(_query.toLowerCase()) ||
+            .where((p) =>
+                p.name.toLowerCase().contains(_query.toLowerCase()) ||
                 p.address.toLowerCase().contains(_query.toLowerCase()))
             .toList();
     return ListView.separated(
@@ -443,7 +453,8 @@ extension on _ScanResultsScreenState {
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Theme.of(context).cardColor.withOpacity(0.6),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
@@ -454,56 +465,37 @@ extension on _ScanResultsScreenState {
         }
         final place = filtered[index - 1];
         return InkWell(
-          onTap: () async {
-            // Enrich with jamat times by googlePlaceId first, else provider_id
-            Map<String, JamatTimeDetails> jamat = const {};
-            String updatedBy = 'MasjidNear';
-            int? supaId = place.id;
-            bool femaleAllowed = place.femaleAllowed ?? false;
-
-            try {
-              final fetched = await JamatTimeService.fetchByPlaceOrProvider(
-                googlePlaceId: place.googlePlaceId,
-                providerId: place.providerId,
-              );
-              if (fetched.isNotEmpty) {
-                jamat = fetched;
-                updatedBy = 'Supabase';
-              } else if (supaId != null) {
-                // Fallback to mosque_id when available
-                final fallback = await JamatTimeService.fetchForMosque(supaId);
-                if (fallback.isNotEmpty) {
-                  jamat = fallback;
-                  updatedBy = 'Supabase';
-                }
-              }
-            } catch (_) {}
-
+          onTap: () {
+            final address = place.address.isEmpty
+                ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}'
+                : place.address;
+            final fallbackTimes = <String, JamatTimeDetails>{
+              'Fajr': JamatTimeDetails(jamatTime: '--:--'),
+              'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
+              'Asr': JamatTimeDetails(jamatTime: '--:--'),
+              'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
+              'Isha': JamatTimeDetails(jamatTime: '--:--'),
+            };
             final mosque = Mosque(
-              id: supaId,
+              id: place.id,
               name: place.name,
-              address: place.address.isEmpty
-                  ? '${place.lat.toStringAsFixed(4)}, ${place.lon.toStringAsFixed(4)}'
-                  : place.address,
+              address: address,
               latitude: place.lat,
               longitude: place.lon,
               googlePlaceId: place.googlePlaceId,
               provider: 'masjidnear.me',
               providerId: place.providerId,
-              isFemaleAccessible: femaleAllowed,
+              isFemaleAccessible: place.femaleAllowed ?? false,
               lastUpdatedAt: DateTime.now(),
-              lastUpdatedBy: updatedBy,
-              jamatTimes: jamat.isNotEmpty
-                  ? jamat
-                  : {
-                      'Fajr': JamatTimeDetails(jamatTime: '--:--'),
-                      'Dhuhr': JamatTimeDetails(jamatTime: '--:--'),
-                      'Asr': JamatTimeDetails(jamatTime: '--:--'),
-                      'Maghrib': JamatTimeDetails(jamatTime: '--:--'),
-                      'Isha': JamatTimeDetails(jamatTime: '--:--'),
-                    },
+              lastUpdatedBy: 'MasjidNear',
+              jamatTimes: fallbackTimes,
             );
-            widget.onMosqueSelected?.call(mosque);
+            if (widget.onMosqueSelected != null) {
+              widget.onMosqueSelected!(mosque);
+              // Don't pop if callback is provided - let the parent handle navigation
+              return;
+            }
+
             if (!context.mounted) return;
             Navigator.pop(context, mosque);
           },
@@ -552,7 +544,8 @@ extension on _ScanResultsScreenState {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(Icons.arrow_forward_ios, color: Theme.of(context).primaryColor, size: 18),
+                  Icon(Icons.arrow_forward_ios,
+                      color: Theme.of(context).primaryColor, size: 18),
                 ],
               ),
             ),

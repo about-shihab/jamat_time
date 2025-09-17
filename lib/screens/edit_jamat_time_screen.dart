@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
+import 'package:jamat_time/models/jamat_time_details.dart';
 import 'package:jamat_time/l10n/app_localizations.dart';
-import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:jamat_time/services/jamat_time_service.dart';
 import 'package:jamat_time/widgets/aurora_background_painter.dart';
@@ -15,7 +15,8 @@ class EditJamatTimeScreen extends StatefulWidget {
   State<EditJamatTimeScreen> createState() => _EditJamatTimeScreenState();
 }
 
-class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTickerProviderStateMixin {
+class _EditJamatTimeScreenState extends State<EditJamatTimeScreen>
+    with SingleTickerProviderStateMixin {
   late TextEditingController _fajrController;
   late TextEditingController _dhuhrController;
   late TextEditingController _asrController;
@@ -31,24 +32,35 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
   bool _wheelchairFacility = false;
   late final AnimationController _animationController;
   bool _saving = false;
+  bool _prefilling = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 40))
+          ..repeat();
     final times = widget.mosque.jamatTimes;
-    _fajrController = TextEditingController(text: times['Fajr']?.jamatTime ?? '');
-    _dhuhrController = TextEditingController(text: times['Dhuhr']?.jamatTime ?? '');
+    _fajrController =
+        TextEditingController(text: times['Fajr']?.jamatTime ?? '');
+    _dhuhrController =
+        TextEditingController(text: times['Dhuhr']?.jamatTime ?? '');
     _asrController = TextEditingController(text: times['Asr']?.jamatTime ?? '');
-    _maghribController = TextEditingController(text: times['Maghrib']?.jamatTime ?? '');
-    _ishaController = TextEditingController(text: times['Isha']?.jamatTime ?? '');
+    _maghribController =
+        TextEditingController(text: times['Maghrib']?.jamatTime ?? '');
+    _ishaController =
+        TextEditingController(text: times['Isha']?.jamatTime ?? '');
     _phoneController = TextEditingController(text: widget.mosque.phone ?? '');
-    _websiteController = TextEditingController(text: widget.mosque.website ?? '');
-    _capacityController = TextEditingController(text: widget.mosque.capacity?.toString() ?? '');
+    _websiteController =
+        TextEditingController(text: widget.mosque.website ?? '');
+    _capacityController =
+        TextEditingController(text: widget.mosque.capacity?.toString() ?? '');
     _imamController = TextEditingController(text: widget.mosque.imamName ?? '');
-    _muezzinController = TextEditingController(text: widget.mosque.muezzinName ?? '');
+    _muezzinController =
+        TextEditingController(text: widget.mosque.muezzinName ?? '');
     _femaleAccessible = widget.mosque.isFemaleAccessible;
     _wheelchairFacility = widget.mosque.wheelchairFacility ?? false;
+    _prefillExistingTimesIfNeeded();
   }
 
   @override
@@ -83,11 +95,19 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
         jamatTimesText: map,
         isFemaleAccessible: _femaleAccessible,
         wheelchairFacility: _wheelchairFacility,
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-        website: _websiteController.text.trim().isEmpty ? null : _websiteController.text.trim(),
+        phone: _phoneController.text.trim().isEmpty
+            ? null
+            : _phoneController.text.trim(),
+        website: _websiteController.text.trim().isEmpty
+            ? null
+            : _websiteController.text.trim(),
         capacity: int.tryParse(_capacityController.text.trim()),
-        imamName: _imamController.text.trim().isEmpty ? null : _imamController.text.trim(),
-        muezzinName: _muezzinController.text.trim().isEmpty ? null : _muezzinController.text.trim(),
+        imamName: _imamController.text.trim().isEmpty
+            ? null
+            : _imamController.text.trim(),
+        muezzinName: _muezzinController.text.trim().isEmpty
+            ? null
+            : _muezzinController.text.trim(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -97,12 +117,14 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
               Icon(ok ? Icons.check_circle_outline : Icons.error_outline,
                   color: Colors.white),
               const SizedBox(width: 8),
-              Expanded(child: Text(ok ? l10n.thankYouContribution : 'Failed to save. Please try again.')),
+              Expanded(
+                  child: Text(ok
+                      ? l10n.thankYouContribution
+                      : 'Failed to save. Please try again.')),
             ],
           ),
-          backgroundColor: ok
-              ? Colors.green.shade600
-              : Theme.of(context).colorScheme.error,
+          backgroundColor:
+              ok ? Colors.green.shade600 : Theme.of(context).colorScheme.error,
         ),
       );
       if (mounted) setState(() => _saving = false);
@@ -111,6 +133,53 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
         Navigator.of(context).popUntil((_) => count++ >= 2);
       }
     }());
+  }
+
+  void _prefillExistingTimesIfNeeded() {
+    final hasTimes = widget.mosque.jamatTimes.values.any(
+      (t) => t.jamatTime.trim().isNotEmpty && t.jamatTime != '--:--',
+    );
+    if (hasTimes) return;
+    final hasIdentifiers = (widget.mosque.googlePlaceId?.isNotEmpty ?? false) ||
+        (widget.mosque.providerId?.isNotEmpty ?? false) ||
+        widget.mosque.id != null;
+    if (!hasIdentifiers) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_loadTimesFromService());
+    });
+  }
+
+  Future<void> _loadTimesFromService() async {
+    if (mounted) setState(() => _prefilling = true);
+    try {
+      Map<String, JamatTimeDetails> jamat = const {};
+      if ((widget.mosque.googlePlaceId?.isNotEmpty ?? false) ||
+          (widget.mosque.providerId?.isNotEmpty ?? false)) {
+        jamat = await JamatTimeService.fetchByPlaceOrProvider(
+          googlePlaceId: widget.mosque.googlePlaceId,
+          providerId: widget.mosque.providerId,
+        );
+      }
+      if (jamat.isEmpty && widget.mosque.id != null) {
+        jamat = await JamatTimeService.fetchForMosque(widget.mosque.id!);
+      }
+      if (!mounted || jamat.isEmpty) return;
+      void setIfPresent(TextEditingController controller, String? value) {
+        if (value == null || value.trim().isEmpty) return;
+        controller.text = value.trim();
+      }
+
+      setIfPresent(_fajrController, jamat['Fajr']?.jamatTime);
+      setIfPresent(_dhuhrController, jamat['Dhuhr']?.jamatTime);
+      setIfPresent(_asrController, jamat['Asr']?.jamatTime);
+      setIfPresent(_maghribController, jamat['Maghrib']?.jamatTime);
+      setIfPresent(_ishaController, jamat['Isha']?.jamatTime);
+    } catch (_) {
+      // ignore fetch errors; keep existing values
+    } finally {
+      if (mounted) setState(() => _prefilling = false);
+    }
   }
 
   @override
@@ -138,66 +207,79 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
             ),
           ),
           ListView(
-        padding: const EdgeInsets.all(16.0),
-        children: [
-          Text(
-            widget.mosque.name,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
-          ),
-          Text(
-            widget.mosque.address ?? '',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          _buildTimeInput('Fajr', _fajrController),
-          _buildTimeInput('Dhuhr', _dhuhrController),
-          _buildTimeInput('Asr', _asrController),
-          _buildTimeInput('Maghrib', _maghribController),
-          _buildTimeInput('Isha', _ishaController),
-          const SizedBox(height: 24),
-          Text('Mosque Info', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          _buildText('Phone', _phoneController, keyboardType: TextInputType.phone),
-          _buildText('Website', _websiteController, keyboardType: TextInputType.url),
-          _buildText('Capacity', _capacityController, keyboardType: TextInputType.number),
-          _buildText('Imam Name', _imamController),
-          _buildText('Muezzin Name', _muezzinController),
-          const SizedBox(height: 6),
-          Row(
+            padding: const EdgeInsets.all(16.0),
             children: [
-              Expanded(
-                child: SwitchListTile(
-                  title: const Text('Women Accessible'),
-                  value: _femaleAccessible,
-                  onChanged: (v) => setState(() => _femaleAccessible = v),
+              if (_prefilling)
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 16.0),
+                  child: LinearProgressIndicator(),
                 ),
+              Text(
+                widget.mosque.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontSize: 24),
               ),
-              Expanded(
-                child: SwitchListTile(
-                  title: const Text('Wheelchair Facility'),
-                  value: _wheelchairFacility,
-                  onChanged: (v) => setState(() => _wheelchairFacility = v),
+              Text(
+                widget.mosque.address ?? '',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 24),
+              _buildTimeInput('Fajr', _fajrController),
+              _buildTimeInput('Dhuhr', _dhuhrController),
+              _buildTimeInput('Asr', _asrController),
+              _buildTimeInput('Maghrib', _maghribController),
+              _buildTimeInput('Isha', _ishaController),
+              const SizedBox(height: 24),
+              Text('Mosque Info',
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 8),
+              _buildText('Phone', _phoneController,
+                  keyboardType: TextInputType.phone),
+              _buildText('Website', _websiteController,
+                  keyboardType: TextInputType.url),
+              _buildText('Capacity', _capacityController,
+                  keyboardType: TextInputType.number),
+              _buildText('Imam Name', _imamController),
+              _buildText('Muezzin Name', _muezzinController),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(
+                    child: SwitchListTile(
+                      title: const Text('Women Accessible'),
+                      value: _femaleAccessible,
+                      onChanged: (v) => setState(() => _femaleAccessible = v),
+                    ),
+                  ),
+                  Expanded(
+                    child: SwitchListTile(
+                      title: const Text('Wheelchair Facility'),
+                      value: _wheelchairFacility,
+                      onChanged: (v) => setState(() => _wheelchairFacility = v),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.save_alt_outlined),
+                  label: _saving
+                      ? const Text('Saving...')
+                      : Text(AppLocalizations.of(context)!.save),
+                  onPressed: _saving ? null : _saveTimes,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-           child: ElevatedButton.icon(
-             icon: const Icon(Icons.save_alt_outlined),
-              label: _saving
-                  ? const Text('Saving...')
-                  : Text(AppLocalizations.of(context)!.save),
-              onPressed: _saving ? null : _saveTimes,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ),
-        ],
-      ),
         ],
       ),
     );
@@ -223,7 +305,8 @@ class _EditJamatTimeScreenState extends State<EditJamatTimeScreen> with SingleTi
     );
   }
 
-  Widget _buildText(String label, TextEditingController c, {TextInputType? keyboardType}) {
+  Widget _buildText(String label, TextEditingController c,
+      {TextInputType? keyboardType}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0),
       child: TextField(

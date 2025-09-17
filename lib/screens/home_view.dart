@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hijri/hijri_calendar.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +18,24 @@ import 'package:jamat_time/widgets/next_jamat_card.dart';
 import 'package:jamat_time/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jamat_time/providers/location_provider.dart';
+
+String _valueOrNA(String? value) {
+  if (value == null) return 'N/A';
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? 'N/A' : trimmed;
+}
+
+String _formatBoolValue(bool? value) {
+  if (value == null) return 'N/A';
+  return value ? 'Yes' : 'No';
+}
+
+String _formatCapacityValue(num? value) {
+  if (value == null) return 'N/A';
+  if (value is int) return value.toString();
+  if (value == value.toInt()) return value.toInt().toString();
+  return value.toString();
+}
 
 class HomeView extends StatefulWidget {
   final Mosque favoriteMosque;
@@ -73,12 +92,13 @@ class _HomeViewState extends State<HomeView> {
     // Rescan nearby mosques: open results directly and replace MainScreen on choice
     final selected = await Navigator.push<Mosque>(
       context,
-      MaterialPageRoute(builder: (context) => ScanResultsScreen()),
+      MaterialPageRoute(builder: (context) => const ScanResultsScreen()),
     );
     if (selected != null && context.mounted) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => LandingScreen(initialMosque: selected)),
+        MaterialPageRoute(
+            builder: (_) => LandingScreen(initialMosque: selected)),
         (route) => false,
       );
     }
@@ -91,7 +111,8 @@ class _HomeViewState extends State<HomeView> {
     try {
       Map<String, String> out = {};
       // Prefer googlePlaceId -> provider_id
-      if ((gpid != null && gpid.isNotEmpty) || (pid != null && pid.isNotEmpty)) {
+      if ((gpid != null && gpid.isNotEmpty) ||
+          (pid != null && pid.isNotEmpty)) {
         final byGpOrPid = await JamatTimeService.fetchByPlaceOrProvider(
           googlePlaceId: gpid,
           providerId: pid,
@@ -116,10 +137,13 @@ class _HomeViewState extends State<HomeView> {
 
   String _alarmKeyFor(String prayerName) {
     final date = DateTime.now();
-    final ymd = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    final ymd =
+        '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
     final idPart = widget.favoriteMosque.googlePlaceId?.isNotEmpty == true
         ? 'g:${widget.favoriteMosque.googlePlaceId}'
-        : (widget.favoriteMosque.id != null ? 'm:${widget.favoriteMosque.id}' : 'm:0');
+        : (widget.favoriteMosque.id != null
+            ? 'm:${widget.favoriteMosque.id}'
+            : 'm:0');
     return '$idPart:$ymd:$prayerName';
   }
 
@@ -150,7 +174,8 @@ class _HomeViewState extends State<HomeView> {
     for (final entry in jt.entries) {
       final parsed = _parseToToday(entry.value);
       if (parsed == null) continue;
-      if (parsed.isAfter(now) && (bestTime == null || parsed.isBefore(bestTime))) {
+      if (parsed.isAfter(now) &&
+          (bestTime == null || parsed.isBefore(bestTime))) {
         bestTime = parsed;
         bestName = entry.key;
       }
@@ -184,7 +209,8 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  String _hhmm(DateTime dt) => '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+  String _hhmm(DateTime dt) =>
+      '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
 
   Future<int?> _askMinutesBefore() async {
     return showDialog<int>(
@@ -221,7 +247,8 @@ class _HomeViewState extends State<HomeView> {
                       content: TextField(
                         controller: c,
                         keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: 'Enter minutes'),
+                        decoration:
+                            const InputDecoration(hintText: 'Enter minutes'),
                       ),
                       actions: [
                         TextButton(
@@ -250,16 +277,19 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _handleTrackMosque() async {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final gpid = widget.favoriteMosque.googlePlaceId;
     final lat = widget.favoriteMosque.latitude;
     final lon = widget.favoriteMosque.longitude;
     final address = widget.favoriteMosque.address;
 
-    if ((gpid == null || gpid.isEmpty) && (lat == null || lon == null) && (address == null || address.isEmpty)) {
+    if ((gpid == null || gpid.isEmpty) &&
+        (lat == null || lon == null) &&
+        (address == null || address.isEmpty)) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Location data not available for this mosque.")),
+        const SnackBar(
+            content: Text("Location data not available for this mosque.")),
       );
       return;
     }
@@ -271,12 +301,14 @@ class _HomeViewState extends State<HomeView> {
     // Prefer Google Place ID when available
     final Uri uri;
     if (gpid != null && gpid.isNotEmpty) {
-      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=place_id:$gpid');
+      uri = Uri.parse('https://www.google.com/maps/place/?q=place_id:$gpid');
     } else if (lat != null && lon != null) {
-      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lon');
+      uri = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lon');
     } else {
       final query = Uri.encodeComponent(address!);
-      uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$query');
+      uri = Uri.parse(
+          'https://www.google.com/maps/dir/?api=1&destination=$query');
     }
 
     if (await canLaunchUrl(uri)) {
@@ -289,9 +321,160 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future<void> _showMosqueDetails() async {
+    Mosque cached = widget.favoriteMosque;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('favorite_mosque');
+      if (raw != null) {
+        final data = json.decode(raw) as Map<String, dynamic>;
+        cached = Mosque(
+          id: (data['id'] as num?)?.toInt() ?? cached.id,
+          name: (data['name'] ?? cached.name).toString(),
+          address: (data['address'] as String?) ?? cached.address,
+          latitude: (data['lat'] as num?)?.toDouble() ?? cached.latitude,
+          longitude: (data['lon'] as num?)?.toDouble() ?? cached.longitude,
+          city: (data['city'] as String?) ?? cached.city,
+          district: (data['district'] as String?) ?? cached.district,
+          isFemaleAccessible:
+              (data['fa'] as bool?) ?? cached.isFemaleAccessible,
+          createdBy: cached.createdBy,
+          createdAt: cached.createdAt,
+          googlePlaceId: (data['gpid'] as String?) ?? cached.googlePlaceId,
+          provider: (data['prov'] as String?) ?? cached.provider,
+          providerId: (data['pid'] as String?) ?? cached.providerId,
+          phone: (data['phone'] as String?) ?? cached.phone,
+          website: (data['website'] as String?) ?? cached.website,
+          capacity: (data['capacity'] as num?) ?? cached.capacity,
+          wheelchairFacility:
+              (data['wheelchair'] as bool?) ?? cached.wheelchairFacility,
+          imamName: (data['imam'] as String?) ?? cached.imamName,
+          muezzinName: (data['muezzin'] as String?) ?? cached.muezzinName,
+          jamatTimes: cached.jamatTimes,
+          lastUpdatedAt: cached.lastUpdatedAt,
+          lastUpdatedBy: cached.lastUpdatedBy,
+        );
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    final theme = Theme.of(context);
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: theme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cached.name,
+                    style: theme.textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 16),
+                  _detailRow(
+                    context,
+                    icon: Icons.home_outlined,
+                    label: 'Address',
+                    value: _valueOrNA(cached.address),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.female,
+                    label: 'Women Area',
+                    value: _formatBoolValue(cached.isFemaleAccessible),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.people_outline,
+                    label: 'Capacity',
+                    value: _formatCapacityValue(cached.capacity),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.language,
+                    label: 'Website',
+                    value: _valueOrNA(cached.website),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.phone_outlined,
+                    label: 'Phone',
+                    value: _valueOrNA(cached.phone),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.accessible_forward,
+                    label: 'Wheelchair Facility',
+                    value: _formatBoolValue(cached.wheelchairFacility),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.person_outline,
+                    label: 'Imam',
+                    value: _valueOrNA(cached.imamName),
+                  ),
+                  _detailRow(
+                    context,
+                    icon: Icons.record_voice_over_outlined,
+                    label: 'Muezzin',
+                    value: _valueOrNA(cached.muezzinName),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _detailRow(BuildContext context,
+      {required IconData icon, required String label, required String? value}) {
+    if (value == null || value.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: theme.primaryColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
+    final l10n = AppLocalizations.of(context);
     final prayerTimesProvider = context.watch<PrayerTimesProvider>();
     final timings = prayerTimesProvider.timings;
     final times = timings ?? _fallbackPrayerTimes;
@@ -365,17 +548,21 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       // Mosque Name
                       Expanded(
-                        child: Text(
-                          widget.favoriteMosque.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
+                        child: GestureDetector(
+                          onTap: _showMosqueDetails,
+                          behavior: HitTestBehavior.translucent,
+                          child: Text(
+                            widget.favoriteMosque.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                       // Rescan Nearby Mosques
@@ -441,13 +628,18 @@ class _HomeViewState extends State<HomeView> {
             ),
             // Last updated info
             Builder(builder: (context) {
-              final hasFetched = _jamatTimes != null && _jamatTimes!.values.any((v) => v.trim().isNotEmpty && v != '--:--');
-              final hasStored = widget.favoriteMosque.jamatTimes.values.any((v) => v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
+              final hasFetched = _jamatTimes != null &&
+                  _jamatTimes!.values
+                      .any((v) => v.trim().isNotEmpty && v != '--:--');
+              final hasStored = widget.favoriteMosque.jamatTimes.values.any(
+                  (v) =>
+                      v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
               if (!(hasFetched || hasStored)) return const SizedBox.shrink();
               final lu = widget.favoriteMosque.lastUpdatedAt;
               final by = widget.favoriteMosque.lastUpdatedBy;
-              if (lu == null && (by == null || by.isEmpty)) return const SizedBox.shrink();
-              final fmt = '${lu?.year.toString().padLeft(4, '0')}-${lu?.month.toString().padLeft(2, '0')}-${lu?.day.toString().padLeft(2, '0')}';
+              if (lu == null && (by.isEmpty)) return const SizedBox.shrink();
+              final fmt =
+                  '${lu.year.toString().padLeft(4, '0')}-${lu.month.toString().padLeft(2, '0')}-${lu.day.toString().padLeft(2, '0')}';
               return Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Text(
@@ -464,29 +656,38 @@ class _HomeViewState extends State<HomeView> {
             Builder(builder: (context) {
               final timings = context.watch<PrayerTimesProvider>().timings;
               final times = timings ?? _fallbackPrayerTimes;
-              final hasFetched = _jamatTimes != null && _jamatTimes!.values.any((v) => v.trim().isNotEmpty && v != '--:--');
-              final hasStored = widget.favoriteMosque.jamatTimes.values.any((v) => v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
+              final hasFetched = _jamatTimes != null &&
+                  _jamatTimes!.values
+                      .any((v) => v.trim().isNotEmpty && v != '--:--');
+              final hasStored = widget.favoriteMosque.jamatTimes.values.any(
+                  (v) =>
+                      v.jamatTime.trim().isNotEmpty && v.jamatTime != '--:--');
               final isExpected = !(hasFetched || hasStored);
               if (!isExpected) return const SizedBox.shrink();
               final expectedJt = _currentEffectiveJamatTimes(times);
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
                   color: Theme.of(context).primaryColor.withOpacity(0.08),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.25)),
+                  border: Border.all(
+                      color: Theme.of(context).primaryColor.withOpacity(0.25)),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, size: 18, color: Theme.of(context).primaryColor),
+                    Icon(Icons.info_outline,
+                        size: 18, color: Theme.of(context).primaryColor),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text('Expected jamat time • No jamat time found', style: Theme.of(context).textTheme.bodySmall),
+                      child: Text('Expected jamat time • No jamat time found',
+                          style: Theme.of(context).textTheme.bodySmall),
                     ),
                     TextButton(
                       onPressed: () {
-                        final expectedMap = expectedJt.map((k, v) => MapEntry(k, JamatTimeDetails(jamatTime: v)));
+                        final expectedMap = expectedJt.map((k, v) =>
+                            MapEntry(k, JamatTimeDetails(jamatTime: v)));
                         final m = Mosque(
                           id: widget.favoriteMosque.id,
                           name: widget.favoriteMosque.name,
@@ -495,7 +696,8 @@ class _HomeViewState extends State<HomeView> {
                           longitude: widget.favoriteMosque.longitude,
                           city: widget.favoriteMosque.city,
                           district: widget.favoriteMosque.district,
-                          isFemaleAccessible: widget.favoriteMosque.isFemaleAccessible,
+                          isFemaleAccessible:
+                              widget.favoriteMosque.isFemaleAccessible,
                           createdBy: widget.favoriteMosque.createdBy,
                           createdAt: widget.favoriteMosque.createdAt,
                           googlePlaceId: widget.favoriteMosque.googlePlaceId,
@@ -504,14 +706,19 @@ class _HomeViewState extends State<HomeView> {
                           phone: widget.favoriteMosque.phone,
                           website: widget.favoriteMosque.website,
                           capacity: widget.favoriteMosque.capacity,
-                          wheelchairFacility: widget.favoriteMosque.wheelchairFacility,
+                          wheelchairFacility:
+                              widget.favoriteMosque.wheelchairFacility,
                           imamName: widget.favoriteMosque.imamName,
                           muezzinName: widget.favoriteMosque.muezzinName,
                           jamatTimes: expectedMap,
                           lastUpdatedAt: widget.favoriteMosque.lastUpdatedAt,
                           lastUpdatedBy: widget.favoriteMosque.lastUpdatedBy,
                         );
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => EditJamatTimeScreen(mosque: m)));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    EditJamatTimeScreen(mosque: m)));
                       },
                       child: const Text('Add jamat time'),
                     )
@@ -522,54 +729,65 @@ class _HomeViewState extends State<HomeView> {
             // Prayer Times Title
 
             // Prayer Times List using original PrayerGlanceItem
-            ...times.keys.where((k) => ['Fajr','Dhuhr','Asr','Maghrib','Isha'].contains(k)).map((prayerName) => PrayerGlanceItem(
-                  prayerName: _localizedPrayerName(l10n, prayerName),
-                  prayerTime: _format12h(times[prayerName]!),
-                  prayerEnd: _format12h(_endFor(prayerName, times)),
-                  jamatTime: _format12h(
-                      _currentEffectiveJamatTimes(times)[prayerName] ?? '--:--'
-                  ),
-                  icon: getIconForPrayer(prayerName),
-                  alarmSet: _alarmsSet.contains(_alarmKeyFor(prayerName)),
-                  onAlarmTap: () async {
-                    final jt = _currentEffectiveJamatTimes(times)[prayerName];
-                    if (jt == null || jt == '--:--') {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Jamat time not available')),
-                      );
-                      return;
-                    }
-                    final dt = _parseToToday(jt);
-                    if (dt == null) {
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Invalid jamat time')),
-                      );
-                      return;
-                    }
-                    final minutes = await _askMinutesBefore();
-                    if (minutes == null) return;
-                    await NotificationService().scheduleNotification(prayerName, dt, minutes);
-                    await _markAlarmSet(prayerName, minutes: minutes);
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Alarm set $minutes minutes before ${_localizedPrayerName(l10n, prayerName)}')),
-                    );
-                  },
-                )),
+            ...times.keys
+                .where((k) =>
+                    ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].contains(k))
+                .map((prayerName) => PrayerGlanceItem(
+                      prayerName: _localizedPrayerName(l10n, prayerName),
+                      prayerTime: _format12h(times[prayerName]!),
+                      prayerEnd: _format12h(_endFor(prayerName, times)),
+                      jamatTime: _format12h(
+                          _currentEffectiveJamatTimes(times)[prayerName] ??
+                              '--:--'),
+                      icon: getIconForPrayer(prayerName),
+                      alarmSet: _alarmsSet.contains(_alarmKeyFor(prayerName)),
+                      onAlarmTap: () async {
+                        final jt =
+                            _currentEffectiveJamatTimes(times)[prayerName];
+                        if (jt == null || jt == '--:--') {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Jamat time not available')),
+                          );
+                          return;
+                        }
+                        final dt = _parseToToday(jt);
+                        if (dt == null) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Invalid jamat time')),
+                          );
+                          return;
+                        }
+                        final minutes = await _askMinutesBefore();
+                        if (minutes == null) return;
+                        await NotificationService()
+                            .scheduleNotification(prayerName, dt, minutes);
+                        await _markAlarmSet(prayerName, minutes: minutes);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  'Alarm set $minutes minutes before ${_localizedPrayerName(l10n, prayerName)}')),
+                        );
+                      },
+                    )),
           ],
         ),
       ),
     );
   }
 
-  Map<String, String> _currentEffectiveJamatTimes(Map<String, String> prayerTimes) {
+  Map<String, String> _currentEffectiveJamatTimes(
+      Map<String, String> prayerTimes) {
     final jt = _jamatTimes;
-    if (jt != null && jt.values.any((v) => v.trim().isNotEmpty && v != '--:--')) {
+    if (jt != null &&
+        jt.values.any((v) => v.trim().isNotEmpty && v != '--:--')) {
       return jt;
     }
-    final stored = widget.favoriteMosque.jamatTimes.map((k, v) => MapEntry(k, v.jamatTime));
+    final stored = widget.favoriteMosque.jamatTimes
+        .map((k, v) => MapEntry(k, v.jamatTime));
     if (stored.values.any((v) => v.trim().isNotEmpty && v != '--:--')) {
       return stored;
     }
@@ -581,7 +799,7 @@ class _HomeViewState extends State<HomeView> {
       'Isha': 10,
     };
     final result = <String, String>{};
-    for (final k in ['Fajr','Dhuhr','Asr','Maghrib','Isha']) {
+    for (final k in ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha']) {
       final base = prayerTimes[k];
       if (base == null) continue;
       final dt = _parseToToday(base);
@@ -903,6 +1121,156 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+
+Future<void> _showMosqueDetails() async {
+  Mosque cached = widget.favoriteMosque;
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('favorite_mosque');
+    if (raw != null) {
+      final data = json.decode(raw) as Map<String, dynamic>;
+      cached = Mosque(
+        id: (data['id'] as num?)?.toInt() ?? cached.id,
+        name: (data['name'] ?? cached.name).toString(),
+        address: (data['address'] as String?) ?? cached.address,
+        latitude: (data['lat'] as num?)?.toDouble() ?? cached.latitude,
+        longitude: (data['lon'] as num?)?.toDouble() ?? cached.longitude,
+        city: (data['city'] as String?) ?? cached.city,
+        district: (data['district'] as String?) ?? cached.district,
+        isFemaleAccessible: (data['fa'] as bool?) ?? cached.isFemaleAccessible,
+        createdBy: cached.createdBy,
+        createdAt: cached.createdAt,
+        googlePlaceId: (data['gpid'] as String?) ?? cached.googlePlaceId,
+        provider: (data['prov'] as String?) ?? cached.provider,
+        providerId: (data['pid'] as String?) ?? cached.providerId,
+        phone: (data['phone'] as String?) ?? cached.phone,
+        website: (data['website'] as String?) ?? cached.website,
+        capacity: (data['capacity'] as num?) ?? cached.capacity,
+        wheelchairFacility:
+            (data['wheelchair'] as bool?) ?? cached.wheelchairFacility,
+        imamName: (data['imam'] as String?) ?? cached.imamName,
+        muezzinName: (data['muezzin'] as String?) ?? cached.muezzinName,
+        jamatTimes: cached.jamatTimes,
+        lastUpdatedAt: cached.lastUpdatedAt,
+        lastUpdatedBy: cached.lastUpdatedBy,
+      );
+    }
+  } catch (_) {}
+  if (!mounted) return;
+  final theme = Theme.of(context);
+  await showModalBottomSheet(
+    context: context,
+    showDragHandle: true,
+    backgroundColor: theme.cardColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: SingleChildScrollView(
+            child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                cached.name,
+                style: theme.textTheme.titleLarge,
+              ),
+              const SizedBox(height: 16),
+              _detailRow(
+                context,
+                icon: Icons.home_outlined,
+                label: 'Address',
+                value: _valueOrNA(cached.address),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.female,
+                label: 'Women Area',
+                value: _formatBoolValue(cached.isFemaleAccessible),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.people_outline,
+                label: 'Capacity',
+                value: _formatCapacityValue(cached.capacity),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.language,
+                label: 'Website',
+                value: _valueOrNA(cached.website),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.phone_outlined,
+                label: 'Phone',
+                value: _valueOrNA(cached.phone),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.accessible_forward,
+                label: 'Wheelchair Facility',
+                value: _formatBoolValue(cached.wheelchairFacility),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.person_outline,
+                label: 'Imam',
+                value: _valueOrNA(cached.imamName),
+              ),
+              _detailRow(
+                context,
+                icon: Icons.record_voice_over_outlined,
+                label: 'Muezzin',
+                value: _valueOrNA(cached.muezzinName),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+  Widget _detailRow(BuildContext context,
+      {required IconData icon, required String label, required String? value}) {
+    if (value == null || value.trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: theme.primaryColor),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -988,17 +1356,21 @@ class _HomeViewState extends State<HomeView> {
                       ),
                       // Mosque Name
                       Expanded(
-                        child: Text(
-                          widget.favoriteMosque.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
-                          textAlign: TextAlign.center,
-                          overflow: TextOverflow.ellipsis,
+                        child: GestureDetector(
+                          onTap: _showMosqueDetails,
+                          behavior: HitTestBehavior.translucent,
+                          child: Text(
+                            widget.favoriteMosque.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                            textAlign: TextAlign.center,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ),
                       // Rescan Nearby Mosques
@@ -1237,7 +1609,8 @@ class _HomeViewState extends State<HomeView> {
 
 String _format12h(String time24) {
   // Accept "HH:mm" or already formatted values
-  if (time24.contains('AM') || time24.contains('PM') || time24 == '--:--') return time24;
+  if (time24.contains('AM') || time24.contains('PM') || time24 == '--:--')
+    return time24;
   try {
     // Remove any text after the time (e.g., " (+06)")
     final cleanTime = time24.split(' ').first;
@@ -1245,7 +1618,9 @@ String _format12h(String time24) {
     int h = int.parse(parts[0]);
     final m = parts[1];
     final am = h < 12;
-    if (h == 0) h = 12; else if (h > 12) h -= 12;
+    if (h == 0) {
+      h = 12;
+    } else if (h > 12) h -= 12;
     return '${h.toString().padLeft(2, '0')}:$m ${am ? 'AM' : 'PM'}';
   } catch (_) {
     return time24;
@@ -1270,14 +1645,20 @@ String _endFor(String prayer, Map<String, String> t) {
 }
 
 // Custom painter for Islamic decorative shape
-String _localizedPrayerName(AppLocalizations l10n, String key){
+String _localizedPrayerName(AppLocalizations l10n, String key) {
   switch (key) {
-    case 'Fajr': return l10n.prayerFajr;
-    case 'Dhuhr': return l10n.prayerDhuhr;
-    case 'Asr': return l10n.prayerAsr;
-    case 'Maghrib': return l10n.prayerMaghrib;
-    case 'Isha': return l10n.prayerIsha;
-    default: return key;
+    case 'Fajr':
+      return l10n.prayerFajr;
+    case 'Dhuhr':
+      return l10n.prayerDhuhr;
+    case 'Asr':
+      return l10n.prayerAsr;
+    case 'Maghrib':
+      return l10n.prayerMaghrib;
+    case 'Isha':
+      return l10n.prayerIsha;
+    default:
+      return key;
   }
 }
 

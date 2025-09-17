@@ -22,21 +22,25 @@ class LandingScreen extends StatefulWidget {
   State<LandingScreen> createState() => _LandingScreenState();
 }
 
-class _LandingScreenState extends State<LandingScreen> with SingleTickerProviderStateMixin {
+class _LandingScreenState extends State<LandingScreen>
+    with SingleTickerProviderStateMixin {
   Mosque? _favoriteMosque;
   late final AnimationController _animationController;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 40))..repeat();
+    _animationController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 40))
+          ..repeat();
     // If a mosque was provided (e.g., reselect flow), set it immediately and persist
     if (widget.initialMosque != null) {
       _favoriteMosque = widget.initialMosque;
       // Enrich with Supabase jamat times if available
       unawaited(_enrichFavoriteWithJamatTimes());
       unawaited(_saveFavorite(_favoriteMosque!));
-      SharedPreferences.getInstance().then((prefs) => prefs.setBool('has_favorite', true));
+      SharedPreferences.getInstance()
+          .then((prefs) => prefs.setBool('has_favorite', true));
     }
     // After language selection: if no favorite chosen before, show scan results.
     // Otherwise, show nearest mosque immediately.
@@ -80,7 +84,8 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
   Future<void> onMosqueFavorited(Mosque mosque) async {
     // Set immediately for snappy UX
     if (mounted) setState(() => _favoriteMosque = mosque);
-    SharedPreferences.getInstance().then((prefs) => prefs.setBool('has_favorite', true));
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setBool('has_favorite', true));
     await _saveFavorite(mosque);
     // Then enrich with jamat times from Supabase if mosque has id
     await _enrichFavoriteWithJamatTimes();
@@ -89,11 +94,20 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
   Future<void> _enrichFavoriteWithJamatTimes() async {
     final current = _favoriteMosque;
     if (current == null) return;
-    final id = current.id;
-    if (id == null) return; // OSM-only mosque, no Supabase id
     try {
-      final map = await JamatTimeService.fetchForMosque(id);
-      if (map.isEmpty) return;
+      Map<String, JamatTimeDetails> jamat = const {};
+      final hasIdentifiers = (current.googlePlaceId?.isNotEmpty ?? false) ||
+          (current.providerId?.isNotEmpty ?? false);
+      if (hasIdentifiers) {
+        jamat = await JamatTimeService.fetchByPlaceOrProvider(
+          googlePlaceId: current.googlePlaceId,
+          providerId: current.providerId,
+        );
+      }
+      if (jamat.isEmpty && current.id != null) {
+        jamat = await JamatTimeService.fetchForMosque(current.id!);
+      }
+      if (jamat.isEmpty) return;
       final enriched = Mosque(
         id: current.id,
         name: current.name,
@@ -105,7 +119,16 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         isFemaleAccessible: current.isFemaleAccessible,
         createdBy: current.createdBy,
         createdAt: current.createdAt,
-        jamatTimes: map,
+        googlePlaceId: current.googlePlaceId,
+        provider: current.provider,
+        providerId: current.providerId,
+        phone: current.phone,
+        website: current.website,
+        capacity: current.capacity,
+        wheelchairFacility: current.wheelchairFacility,
+        imamName: current.imamName,
+        muezzinName: current.muezzinName,
+        jamatTimes: jamat,
         lastUpdatedAt: DateTime.now(),
         lastUpdatedBy: 'Supabase',
       );
@@ -131,6 +154,12 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         'gpid': m.googlePlaceId,
         'pid': m.providerId,
         'prov': m.provider,
+        'phone': m.phone,
+        'website': m.website,
+        'capacity': m.capacity,
+        'wheelchair': m.wheelchairFacility,
+        'imam': m.imamName,
+        'muezzin': m.muezzinName,
       };
       await prefs.setString('favorite_mosque', json.encode(map));
     } catch (_) {}
@@ -154,6 +183,12 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
         providerId: m['pid'] as String?,
         provider: m['prov'] as String?,
         isFemaleAccessible: (m['fa'] as bool?) ?? false,
+        phone: m['phone'] as String?,
+        website: m['website'] as String?,
+        capacity: m['capacity'] as num?,
+        wheelchairFacility: m['wheelchair'] as bool?,
+        imamName: m['imam'] as String?,
+        muezzinName: m['muezzin'] as String?,
         jamatTimes: const {},
         lastUpdatedAt: DateTime.now(),
         lastUpdatedBy: 'Saved',
@@ -168,7 +203,8 @@ class _LandingScreenState extends State<LandingScreen> with SingleTickerProvider
     await loc.ensureLocation();
     if (loc.position != null) {
       final pt = context.read<PrayerTimesProvider>();
-      await pt.fetchMonthlyPrayerTimes(loc.position!.latitude, loc.position!.longitude);
+      await pt.fetchMonthlyPrayerTimes(
+          loc.position!.latitude, loc.position!.longitude);
     }
   }
 
