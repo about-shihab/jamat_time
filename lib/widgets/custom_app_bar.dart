@@ -45,8 +45,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.language,
-                    color: Theme.of(context).primaryColor),
+                leading:
+                    Icon(Icons.language, color: Theme.of(context).primaryColor),
                 title: Text(l10n.language),
                 trailing: DropdownButton<Locale>(
                   value: localeProvider.locale,
@@ -101,7 +101,8 @@ class _CustomAppBarState extends State<CustomAppBar> {
 
     final l10n = AppLocalizations.of(context)!;
     final locationProvider = Provider.of<LocationProvider>(context);
-    final districtLabel = locationProvider.district ?? locationProvider.city ?? l10n.chattogram;
+    final districtLabel =
+        locationProvider.district ?? locationProvider.city ?? l10n.chattogram;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,

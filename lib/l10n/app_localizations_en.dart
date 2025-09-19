@@ -193,4 +193,212 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get prayerIsha => 'Isha';
+
+  @override
+  String get homeMenu => 'Home';
+
+  @override
+  String get qiblaShort => 'Qibla';
+
+  @override
+  String get prayerTracker => 'Prayer Tracker';
+
+  @override
+  String get quranWordLearner => 'Word Learner';
+
+  @override
+  String get events => 'Events';
+
+  @override
+  String get fetchingLocation => 'Getting your location...';
+
+  @override
+  String get enableLocationServices =>
+      'Enable location services to align with the Qibla.';
+
+  @override
+  String get retryLabel => 'Retry';
+
+  @override
+  String get qiblaCircleHint =>
+      'Stand within the circle, align the arrow with the Kaaba, and steady your breathing.';
+
+  @override
+  String get qiblaAlignStep1 =>
+      'Place your feet shoulder-width apart and face the Kaaba icon.';
+
+  @override
+  String get qiblaAlignStep2 =>
+      'Rotate gently until the arrow lines up with your chest.';
+
+  @override
+  String get qiblaAlignStep3 =>
+      'Relax your shoulders, breathe in, and set your intention.';
+
+  @override
+  String get locationUnknown => 'Unknown location';
+
+  @override
+  String coordinatesLabel(Object lat, Object lon) {
+    return 'Lat $lat, Lon $lon';
+  }
+
+  @override
+  String qiblaBearingLabel(Object degrees) {
+    return 'Qibla bearing: $degrees° from true north';
+  }
+
+  @override
+  String get orientationSummary => 'Orientation summary';
+
+  @override
+  String get orientationUnknown => 'Orientation not available yet';
+
+  @override
+  String get distanceUnknown => 'Distance unavailable';
+
+  @override
+  String qiblaDistanceLabel(Object kilometers) {
+    return 'Distance to Kaaba: $kilometers km';
+  }
+
+  @override
+  String get quranLanguageLabel => 'Recitation language';
+
+  @override
+  String get quranLoadError => 'We couldn\'t load the surah list right now.';
+
+  @override
+  String get quranEmptyLibrary => 'No surahs available.';
+
+  @override
+  String verseCountLabel(int count) {
+    return 'Verses: $count';
+  }
+
+  @override
+  String revelationPlaceLabel(Object place) {
+    return 'Revealed in $place';
+  }
+
+  @override
+  String get quranDetailLoadError => 'Unable to load surah details.';
+
+  @override
+  String get quranDetailEmpty => 'No verses to display for this surah.';
+
+  @override
+  String get wordByWordLabel => 'Word-by-word translation';
+
+  @override
+  String get tafsirLabel => 'Tafsir';
+
+  @override
+  String get monthlyOverviewTitle => 'Monthly prayed overview';
+
+  @override
+  String get monthlyOverviewCaption =>
+      'Percentages reflect how many days you marked each prayer for this month.';
+
+  @override
+  String get settingsAppearanceSection => 'Appearance';
+
+  @override
+  String get settingsGeneralSection => 'General';
+
+  @override
+  String get settingsSupportSection => 'Support';
+
+  @override
+  String get notificationsLabel => 'Prayer reminders';
+
+  @override
+  String get notificationsDescription =>
+      'Enable reminders for upcoming prayers and jamat times.';
+
+  @override
+  String get aboutUsSubtitle => 'Learn more about the team and vision.';
+
+  @override
+  String get rateThisAppSubtitle => 'Share your feedback with a quick review.';
+
+  @override
+  String get rateThisAppError =>
+      'We couldn\'t open the store page. Please try again later.';
+
+  @override
+  String get aboutHeadline => 'Connecting hearts through prayer';
+
+  @override
+  String get aboutDescription =>
+      'Jamat Time helps you discover prayer times, nearby masjids, and community events with a modern experience.';
+
+  @override
+  String get aboutMissionTitle => 'Our Mission';
+
+  @override
+  String get aboutMissionBody =>
+      'To empower every Muslim to stay connected with the masjid and never miss a congregational prayer.';
+
+  @override
+  String get aboutFeaturesTitle => 'What you\'ll love';
+
+  @override
+  String get aboutFeaturePrayer =>
+      'Track daily prayers and monitor your monthly progress.';
+
+  @override
+  String get aboutFeatureCommunity =>
+      'Discover community events and nearby masjids at a glance.';
+
+  @override
+  String get aboutFeatureLearning =>
+      'Deepen your Quran journey with translations, tafsir, and word-by-word study.';
+
+  @override
+  String get aboutFeatureCompass =>
+      'Face the Qibla confidently with a guided compass experience.';
+
+  @override
+  String get aboutContactTitle => 'Stay connected';
+
+  @override
+  String get aboutContactBody =>
+      'We\'d love to hear from you at support@jamattime.app. Send feedback, stories, or salaam!';
+
+  @override
+  String get qiblaSourceTitle => 'Direction source';
+
+  @override
+  String get qiblaSourceLoading =>
+      'Contacting Al Adhan for a precise bearing...';
+
+  @override
+  String qiblaSourceSuccess(Object degrees) {
+    return 'Al Adhan reports a bearing of $degrees° from true north.';
+  }
+
+  @override
+  String qiblaSourceComparison(Object degrees) {
+    return 'Device fallback bearing: $degrees°.';
+  }
+
+  @override
+  String get qiblaSourceFallback =>
+      'Could not reach Al Adhan. Using the device-calculated direction instead.';
+
+  @override
+  String get qiblaTipsTitle => 'Alignment tips';
+
+  @override
+  String get quranLastReadLabel => 'Last read';
+
+  @override
+  String get quranFavoritesLabel => 'Favorite surahs';
+
+  @override
+  String get noDataLabel => 'No prayer data yet';
+
+  @override
+  String get trackerDateLabel => 'Date';
 }

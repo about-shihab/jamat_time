@@ -30,8 +30,10 @@ class QuranLearningProvider extends ChangeNotifier {
   List<QuranWord> get allWords => _allWords;
 
   int get sectionCount => (_allWords.length / wordsPerSection).ceil();
-  bool isSectionUnlocked(int sectionIndex) => _unlockedSections.contains(sectionIndex);
-  bool isSectionCompleted(int sectionIndex) => _completedSections.contains(sectionIndex);
+  bool isSectionUnlocked(int sectionIndex) =>
+      _unlockedSections.contains(sectionIndex);
+  bool isSectionCompleted(int sectionIndex) =>
+      _completedSections.contains(sectionIndex);
 
   double sectionProgress(int sectionIndex) {
     final total = sectionWords(sectionIndex).length;
@@ -98,7 +100,8 @@ class QuranLearningProvider extends ChangeNotifier {
   Future<void> _loadProgress() async {
     final prefs = await SharedPreferences.getInstance();
     final unlocked = prefs.getStringList('quran_unlocked_sections') ?? ['0'];
-    final completed = prefs.getStringList('quran_completed_sections') ?? <String>[];
+    final completed =
+        prefs.getStringList('quran_completed_sections') ?? <String>[];
     _unlockedSections = unlocked.map(int.parse).toSet();
     _completedSections = completed.map(int.parse).toSet();
   }
@@ -112,7 +115,8 @@ class QuranLearningProvider extends ChangeNotifier {
   }
 
   void markWordViewed(int sectionIndex, int wordId) {
-    final set = _viewedWordIdsBySection.putIfAbsent(sectionIndex, () => <int>{});
+    final set =
+        _viewedWordIdsBySection.putIfAbsent(sectionIndex, () => <int>{});
     set.add(wordId);
     notifyListeners();
   }
@@ -133,7 +137,8 @@ class QuranLearningProvider extends ChangeNotifier {
   }
 
   // Quiz generation utilities
-  List<QuizQuestion> buildSectionQuiz(int sectionIndex, {String languageCode = 'en'}) {
+  List<QuizQuestion> buildSectionQuiz(int sectionIndex,
+      {String languageCode = 'en'}) {
     final rnd = Random();
     final words = sectionWords(sectionIndex);
     // Use all words for distractors to increase variety
@@ -141,8 +146,7 @@ class QuranLearningProvider extends ChangeNotifier {
     final items = <QuizQuestion>[];
     for (final w in words) {
       final useBn = languageCode.toLowerCase().startsWith('bn');
-      final correct =
-          (useBn ? w.bnTranslation : w.enTranslation)?.trim();
+      final correct = (useBn ? w.bnTranslation : w.enTranslation)?.trim();
       if (correct == null || correct.isEmpty) continue;
       final options = <String>{correct};
       // Pick 3 unique distractors
@@ -162,5 +166,6 @@ class QuizQuestion {
   final QuranWord word;
   final List<String> options;
   final String correct;
-  const QuizQuestion({required this.word, required this.options, required this.correct});
+  const QuizQuestion(
+      {required this.word, required this.options, required this.correct});
 }

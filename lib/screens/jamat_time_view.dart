@@ -15,8 +15,9 @@ class JamatTimeView extends StatefulWidget {
 
 class _JamatTimeViewState extends State<JamatTimeView> {
   final Set<String> _alarmsSet = {};
-  final TextEditingController _minutesController = TextEditingController(text: "15");
-  
+  final TextEditingController _minutesController =
+      TextEditingController(text: "15");
+
   // ACCURATE PRAYER TIME RANGES FOR CHATTOGRAM - SEP 3, 2025
   final Map<String, String> _prayerTimeRanges = {
     'Fajr': '04:29 - 05:44',
@@ -25,7 +26,7 @@ class _JamatTimeViewState extends State<JamatTimeView> {
     'Maghrib': '18:18 - 19:33',
     'Isha': '19:33 - 04:28',
   };
-  
+
   @override
   void dispose() {
     _minutesController.dispose();
@@ -42,7 +43,8 @@ class _JamatTimeViewState extends State<JamatTimeView> {
         content: Text(l10n.reminderCancelled(prayerName)),
       ));
     } else {
-      _showSetAlarmDialog(prayerName, widget.mosque.jamatTimes[prayerName]!.jamatTime);
+      _showSetAlarmDialog(
+          prayerName, widget.mosque.jamatTimes[prayerName]!.jamatTime);
     }
   }
 
@@ -51,24 +53,31 @@ class _JamatTimeViewState extends State<JamatTimeView> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(AppLocalizations.of(context)!.setReminder, style: Theme.of(context).textTheme.titleLarge),
+        title: Text(AppLocalizations.of(context)!.setReminder,
+            style: Theme.of(context).textTheme.titleLarge),
         content: TextField(
           controller: _minutesController,
           keyboardType: TextInputType.number,
           autofocus: true,
-          decoration: InputDecoration(labelText: AppLocalizations.of(context)!.minutesBeforeJamat, border: const OutlineInputBorder()),
+          decoration: InputDecoration(
+              labelText: AppLocalizations.of(context)!.minutesBeforeJamat,
+              border: const OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(AppLocalizations.of(context)!.cancel)),
           ElevatedButton(
             onPressed: () {
               final prayerTime = _parseTime(timeStr);
               final minutes = int.tryParse(_minutesController.text) ?? 15;
-              NotificationService().scheduleNotification(prayerName, prayerTime, minutes);
+              NotificationService()
+                  .scheduleNotification(prayerName, prayerTime, minutes);
               setState(() => _alarmsSet.add(prayerName));
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(AppLocalizations.of(context)!.reminderSet(prayerName)),
+                content:
+                    Text(AppLocalizations.of(context)!.reminderSet(prayerName)),
                 backgroundColor: Theme.of(context).primaryColor,
               ));
             },
@@ -98,10 +107,15 @@ class _JamatTimeViewState extends State<JamatTimeView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.mosque.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24)),
+            Text(widget.mosque.name,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontSize: 24)),
             Text(
-              AppLocalizations.of(context)!
-                  .updatedByOn(widget.mosque.lastUpdatedBy, formatter.format(widget.mosque.lastUpdatedAt)),
+              AppLocalizations.of(context)!.updatedByOn(
+                  widget.mosque.lastUpdatedBy,
+                  formatter.format(widget.mosque.lastUpdatedAt)),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),

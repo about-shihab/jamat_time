@@ -58,10 +58,7 @@ class Mosque {
     final addressDesc = (row['address_desc'] ?? '') as String?;
     final address = (addressDesc != null && addressDesc.isNotEmpty)
         ? addressDesc
-        : ([city]
-                .whereType<String>()
-                .where((e) => e.isNotEmpty)
-                .toList()
+        : ([city].whereType<String>().where((e) => e.isNotEmpty).toList()
               ..removeWhere((e) => e.isEmpty))
             .join(', ');
     return Mosque(

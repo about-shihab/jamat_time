@@ -17,7 +17,8 @@ import 'package:jamat_time/services/prayer_type_cache.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
-  if (AppConfig.supabaseUrl.isNotEmpty && AppConfig.supabaseAnonKey.isNotEmpty) {
+  if (AppConfig.supabaseUrl.isNotEmpty &&
+      AppConfig.supabaseAnonKey.isNotEmpty) {
     await Supabase.initialize(
       url: AppConfig.supabaseUrl,
       anonKey: AppConfig.supabaseAnonKey,

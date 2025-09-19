@@ -9,7 +9,8 @@ class AddMosqueScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     return Padding(
       // Padding to avoid keyboard overlapping
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
         padding: const EdgeInsets.all(20.0),
         decoration: const BoxDecoration(
@@ -50,7 +51,7 @@ class AddMosqueScreen extends StatelessWidget {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 15),
-             TextField(
+            TextField(
               decoration: InputDecoration(
                 labelText: l10n.mosqueNameLocation,
                 border: const OutlineInputBorder(),

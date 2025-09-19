@@ -7,7 +7,8 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class JamatTimeService {
-  static Future<Map<String, JamatTimeDetails>> fetchForMosque(int mosqueId) async {
+  static Future<Map<String, JamatTimeDetails>> fetchForMosque(
+      int mosqueId) async {
     // Check if Supabase is configured
     if (AppConfig.supabaseUrl.isEmpty || AppConfig.supabaseAnonKey.isEmpty) {
       return {};
@@ -24,14 +25,16 @@ class JamatTimeService {
       // If cached, return the cached jamat times
       final decoded = json.decode(cachedJamatTimes);
       return Map<String, JamatTimeDetails>.from(
-        decoded.map((key, value) => MapEntry(key, JamatTimeDetails(jamatTime: value['jamatTime']))),
+        decoded.map((key, value) =>
+            MapEntry(key, JamatTimeDetails(jamatTime: value['jamatTime']))),
       );
     }
 
     // Fetch jamat times from Supabase if not cached
     final List<dynamic> jtRows = await client
         .from('jamat_times')
-        .select('id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at')
+        .select(
+            'id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at')
         .eq('mosque_id', mosqueId);
 
     if (jtRows.isEmpty) return {};
@@ -67,7 +70,10 @@ class JamatTimeService {
     }
 
     // Cache the jamat times locally for the mosque
-    await prefs.setString('jamat_times_mosque_$mosqueId', json.encode(result.map((key, value) => MapEntry(key, {'jamatTime': value.jamatTime}))));
+    await prefs.setString(
+        'jamat_times_mosque_$mosqueId',
+        json.encode(result.map(
+            (key, value) => MapEntry(key, {'jamatTime': value.jamatTime}))));
 
     return result;
   }
@@ -102,7 +108,8 @@ class JamatTimeService {
         try {
           final decoded = json.decode(cached);
           return Map<String, JamatTimeDetails>.from(
-            decoded.map((key, value) => MapEntry(key, JamatTimeDetails(jamatTime: value['jamatTime']))),
+            decoded.map((key, value) =>
+                MapEntry(key, JamatTimeDetails(jamatTime: value['jamatTime']))),
           );
         } catch (_) {}
       }
@@ -113,13 +120,15 @@ class JamatTimeService {
       if (gpid != null && gpid.isNotEmpty) {
         jtRows = await client
             .from('jamat_times')
-            .select('id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at, "googlePlaceId", provider_id')
+            .select(
+                'id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at, "googlePlaceId", provider_id')
             .eq('googlePlaceId', gpid);
       }
       if ((jtRows.isEmpty) && (pid != null && pid.isNotEmpty)) {
         jtRows = await client
             .from('jamat_times')
-            .select('id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at, "googlePlaceId", provider_id')
+            .select(
+                'id, mosque_id, prayer_type_id, jamat_time, start_date, end_date, updated_by, updated_at, "googlePlaceId", provider_id')
             .eq('provider_id', pid);
       }
     } catch (_) {
@@ -162,7 +171,8 @@ class JamatTimeService {
       try {
         await prefs.setString(
           cacheKey,
-          json.encode(result.map((key, value) => MapEntry(key, {'jamatTime': value.jamatTime}))),
+          json.encode(result.map(
+              (key, value) => MapEntry(key, {'jamatTime': value.jamatTime}))),
         );
       } catch (_) {}
     }
@@ -190,19 +200,23 @@ class JamatTimeService {
     final n = name.trim().toLowerCase();
     if (n.isEmpty) return null;
     if (n.contains('fajr')) return 'Fajr';
-    if (n.contains('dhuhr') || n.contains('zuhr') || n.contains('zohor')) return 'Dhuhr';
+    if (n.contains('dhuhr') || n.contains('zuhr') || n.contains('zohor'))
+      return 'Dhuhr';
     if (n.contains('asr') || n.contains('asar')) return 'Asr';
     if (n.contains('maghrib') || n.contains('magrib')) return 'Maghrib';
     if (n.contains('isha') || n.contains('esha')) return 'Isha';
     if (name.contains('ফজর')) return 'Fajr';
-    if (name.contains('যোহর') || name.contains('জোহর') || name.contains('জোহার')) return 'Dhuhr';
+    if (name.contains('যোহর') ||
+        name.contains('জোহর') ||
+        name.contains('জোহার')) return 'Dhuhr';
     if (name.contains('আসর')) return 'Asr';
     if (name.contains('মাগরিব') || name.contains('মাগরীব')) return 'Maghrib';
     if (name.contains('এশা') || name.contains('ইশা')) return 'Isha';
     return null;
   }
 
-  static bool _isActiveByMonthDay(DateTime today, DateTime start, DateTime? end) {
+  static bool _isActiveByMonthDay(
+      DateTime today, DateTime start, DateTime? end) {
     int key(DateTime d) => d.month * 100 + d.day;
     final t = key(today);
     final s = key(start);
@@ -263,8 +277,10 @@ class JamatTimeService {
               'longitude': mosque.longitude,
               'address_desc': mosque.address,
               'city': mosque.city,
-              'is_female_accessible': isFemaleAccessible ?? mosque.isFemaleAccessible,
-              'wheelchair_facility': wheelchairFacility ?? mosque.wheelchairFacility ?? false,
+              'is_female_accessible':
+                  isFemaleAccessible ?? mosque.isFemaleAccessible,
+              'wheelchair_facility':
+                  wheelchairFacility ?? mosque.wheelchairFacility ?? false,
               'phone': phone ?? mosque.phone,
               'website': website ?? mosque.website,
               'capacity': capacity ?? mosque.capacity,
@@ -287,8 +303,10 @@ class JamatTimeService {
           'longitude': mosque.longitude,
           'address_desc': mosque.address,
           'city': mosque.city,
-          'is_female_accessible': isFemaleAccessible ?? mosque.isFemaleAccessible,
-          'wheelchair_facility': wheelchairFacility ?? mosque.wheelchairFacility ?? false,
+          'is_female_accessible':
+              isFemaleAccessible ?? mosque.isFemaleAccessible,
+          'wheelchair_facility':
+              wheelchairFacility ?? mosque.wheelchairFacility ?? false,
           'phone': phone ?? mosque.phone,
           'website': website ?? mosque.website,
           'capacity': capacity ?? mosque.capacity,
@@ -337,34 +355,46 @@ class JamatTimeService {
       final ptId = idFor(k);
       if (ptId == null) continue;
       // Close any previously active or open-ended rows for this prayer
-      final yesterday = DateTime(todayDate.year, todayDate.month, todayDate.day - 1);
+      final yesterday =
+          DateTime(todayDate.year, todayDate.month, todayDate.day - 1);
       try {
         await client
             .from('jamat_times')
             .update({
-              'end_date': DateTime(yesterday.year, yesterday.month, yesterday.day).toIso8601String(),
+              'end_date':
+                  DateTime(yesterday.year, yesterday.month, yesterday.day)
+                      .toIso8601String(),
             })
             .eq('mosque_id', mosqueId)
             .eq('prayer_type_id', ptId)
-            .lte('start_date', DateTime(todayDate.year, todayDate.month, todayDate.day).toIso8601String())
+            .lte(
+                'start_date',
+                DateTime(todayDate.year, todayDate.month, todayDate.day)
+                    .toIso8601String())
             .filter('end_date', 'is', 'null');
       } catch (_) {}
       try {
         await client
             .from('jamat_times')
             .update({
-              'end_date': DateTime(yesterday.year, yesterday.month, yesterday.day).toIso8601String(),
+              'end_date':
+                  DateTime(yesterday.year, yesterday.month, yesterday.day)
+                      .toIso8601String(),
             })
             .eq('mosque_id', mosqueId)
             .eq('prayer_type_id', ptId)
-            .gte('end_date', DateTime(todayDate.year, todayDate.month, todayDate.day).toIso8601String());
+            .gte(
+                'end_date',
+                DateTime(todayDate.year, todayDate.month, todayDate.day)
+                    .toIso8601String());
       } catch (_) {}
 
       rows.add({
         'mosque_id': mosqueId,
         'prayer_type_id': ptId,
         'jamat_time': to24h(v.trim()),
-        'start_date': DateTime(todayDate.year, todayDate.month, todayDate.day).toIso8601String(),
+        'start_date': DateTime(todayDate.year, todayDate.month, todayDate.day)
+            .toIso8601String(),
         'end_date': null,
         'googlePlaceId': mosque.googlePlaceId,
         'provider_id': mosque.providerId,

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:jamat_time/models/mosque_model.dart';
-import 'package:jamat_time/screens/contribution_screen.dart';
-import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/screens/edit_jamat_time_screen.dart';
 import 'package:jamat_time/screens/events_view.dart';
 import 'package:jamat_time/screens/home_view.dart';
 import 'package:jamat_time/screens/qibla_view.dart';
-import 'package:jamat_time/screens/quran_view.dart';
+import 'package:jamat_time/screens/quran_library_view.dart';
+import 'package:jamat_time/screens/quran_word_learner_view.dart';
+import 'package:jamat_time/screens/scan_results_screen.dart';
 import 'package:jamat_time/screens/tracker_view.dart';
 
 class MainScreen extends StatefulWidget {
@@ -35,17 +35,21 @@ class _MainScreenState extends State<MainScreen> {
 
   void _onItemTapped(int index) {
     setState(() => _selectedIndex = index);
-    _pageController.animateToPage(index,
-        duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> views = [
+    final views = <Widget>[
       HomeView(favoriteMosque: widget.favoriteMosque),
       const QiblaView(),
-      const QuranView(),
       const TrackerView(),
+      const QuranLibraryView(),
+      const QuranWordLearnerView(),
       const EventsView(),
     ];
 
@@ -53,32 +57,36 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: Colors.transparent,
       body: PageView(
         controller: _pageController,
+        physics: const ClampingScrollPhysics(),
         onPageChanged: (index) => setState(() => _selectedIndex = index),
         children: views,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // Contribute flow: pick nearby mosque, then enter jamat times
-          final selected = await Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ScanResultsScreen()),
-          );
-          if (selected is Mosque && context.mounted) {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => EditJamatTimeScreen(mosque: selected),
-              ),
-            );
-          }
-        },
-        shape: const _MosqueDomeBorder(),
-        backgroundColor: const Color(0xFF006A71),
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.edit_note_outlined),
-      ),
+      floatingActionButton: _buildFab(context),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildFab(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () async {
+        final selected = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ScanResultsScreen()),
+        );
+        if (selected is Mosque && context.mounted) {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditJamatTimeScreen(mosque: selected),
+            ),
+          );
+        }
+      },
+      shape: const _MosqueDomeBorder(),
+      backgroundColor: const Color(0xFF006A71),
+      foregroundColor: Colors.white,
+      child: const Icon(Icons.edit_note_outlined),
     );
   }
 
@@ -94,23 +102,24 @@ class _MainScreenState extends State<MainScreen> {
         children: [
           _buildNavItem(icon: Icons.home_filled, index: 0),
           _buildNavItem(icon: Icons.explore_outlined, index: 1),
-          const SizedBox(width: 40), // The space for the notch
-          _buildNavItem(icon: Icons.book_outlined, index: 2),
-          _buildNavItem(
-              icon: Icons.event_note_outlined,
-              index: 4), // Mapped to EventsView
+          _buildNavItem(icon: Icons.access_time_rounded, index: 2),
+          const SizedBox(width: 40),
+          _buildNavItem(icon: Icons.menu_book_outlined, index: 3),
+          _buildNavItem(icon: Icons.school_outlined, index: 4),
+          _buildNavItem(icon: Icons.event_note_outlined, index: 5),
         ],
       ),
     );
   }
 
   Widget _buildNavItem({required IconData icon, required int index}) {
+    final isSelected = _selectedIndex == index;
     return IconButton(
-      icon: Icon(icon,
-          color: _selectedIndex == index
-              ? Theme.of(context).primaryColor
-              : Colors.grey,
-          size: 28),
+      icon: Icon(
+        icon,
+        color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey,
+        size: 28,
+      ),
       onPressed: () => _onItemTapped(index),
     );
   }
@@ -120,11 +129,11 @@ class _MosqueDomeBorder extends OutlinedBorder {
   const _MosqueDomeBorder({super.side = BorderSide.none});
 
   @override
-  OutlinedBorder copyWith({BorderSide? side}) => _MosqueDomeBorder(side: side ?? this.side);
+  OutlinedBorder copyWith({BorderSide? side}) =>
+      _MosqueDomeBorder(side: side ?? this.side);
 
   @override
   Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    // A stylized mosque dome with a curved base
     final w = rect.width;
     final h = rect.height;
     final top = rect.top + h * 0.05;
@@ -136,12 +145,24 @@ class _MosqueDomeBorder extends OutlinedBorder {
 
     final path = Path()
       ..moveTo(leftBase.dx, leftBase.dy)
-      // Left shoulder up to peak (slightly bulged)
-      ..quadraticBezierTo(rect.left + w * 0.22, rect.top + h * 0.25, peak.dx, peak.dy)
-      // Right shoulder down to base
-      ..quadraticBezierTo(rect.right - w * 0.22, rect.top + h * 0.25, rightBase.dx, rightBase.dy)
-      // Curved base back to left base
-      ..quadraticBezierTo(bottomCenter.dx, rect.bottom, leftBase.dx, leftBase.dy)
+      ..quadraticBezierTo(
+        rect.left + w * 0.22,
+        rect.top + h * 0.25,
+        peak.dx,
+        peak.dy,
+      )
+      ..quadraticBezierTo(
+        rect.right - w * 0.22,
+        rect.top + h * 0.25,
+        rightBase.dx,
+        rightBase.dy,
+      )
+      ..quadraticBezierTo(
+        bottomCenter.dx,
+        rect.bottom,
+        leftBase.dx,
+        leftBase.dy,
+      )
       ..close();
     return path;
   }

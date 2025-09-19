@@ -12,7 +12,9 @@ class ContributionScreen extends StatefulWidget {
 
 class _ContributionScreenState extends State<ContributionScreen> {
   // Mock data - would come from a database
-  final List<Mosque> _allMosques = [ /* ... Add your mock mosque data here ... */ ];
+  final List<Mosque> _allMosques = [
+    /* ... Add your mock mosque data here ... */
+  ];
   late List<Mosque> _filteredMosques;
   final TextEditingController _searchController = TextEditingController();
 
@@ -87,9 +89,11 @@ class _ContributionScreenState extends State<ContributionScreen> {
                       margin: const EdgeInsets.only(bottom: 12),
                       elevation: 2,
                       color: Colors.white.withOpacity(0.9),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12, horizontal: 20),
                         title: Text(
                           mosque.name,
                           style: TextStyle(
@@ -99,7 +103,9 @@ class _ContributionScreenState extends State<ContributionScreen> {
                         ),
                         subtitle: Text(
                           mosque.address ?? '',
-                          style: TextStyle(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7)),
+                          style: TextStyle(
+                              color: theme.textTheme.bodyMedium?.color
+                                  ?.withOpacity(0.7)),
                         ),
                         trailing: Icon(
                           Icons.arrow_forward_ios,
@@ -110,7 +116,8 @@ class _ContributionScreenState extends State<ContributionScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => EditJamatTimeScreen(mosque: mosque),
+                              builder: (context) =>
+                                  EditJamatTimeScreen(mosque: mosque),
                             ),
                           );
                         },

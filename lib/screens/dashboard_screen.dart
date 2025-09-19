@@ -29,12 +29,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.access_time_filled), label: "Jamat"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.access_time_filled), label: "Jamat"),
           BottomNavigationBarItem(icon: Icon(Icons.event), label: "Events"),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () { /* Navigate to Contribution Screen */ },
+        onPressed: () {/* Navigate to Contribution Screen */},
         child: const Icon(Icons.add),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

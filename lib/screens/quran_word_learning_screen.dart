@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:jamat_time/models/quran_word.dart';
@@ -61,7 +61,10 @@ class _QuranWordLearningScreenState extends State<QuranWordLearningScreen>
       }
     });
 
-    final isBn = Localizations.localeOf(context).languageCode.toLowerCase().startsWith('bn');
+    final isBn = Localizations.localeOf(context)
+        .languageCode
+        .toLowerCase()
+        .startsWith('bn');
     String t(String en, String bn) => isBn ? bn : en;
 
     // Helper to build the dynamic "Next" or "Start Test" button
@@ -137,7 +140,8 @@ class _QuranWordLearningScreenState extends State<QuranWordLearningScreen>
                       setState(() => _current = i);
                       markViewed(i);
                     },
-                    itemBuilder: (context, index) => _WordCard(word: words[index]),
+                    itemBuilder: (context, index) =>
+                        _WordCard(word: words[index]),
                   ),
                 ),
                 Padding(
@@ -607,7 +611,8 @@ class _ExampleCell extends StatelessWidget {
   final String arabic;
   final String meaning;
   final Color color;
-  const _ExampleCell({required this.arabic, required this.meaning, required this.color});
+  const _ExampleCell(
+      {required this.arabic, required this.meaning, required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -660,4 +665,3 @@ class _Pair {
   final String tr;
   _Pair({required this.ar, required this.tr});
 }
-

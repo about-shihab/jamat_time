@@ -193,4 +193,211 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get prayerIsha => 'ইশা';
+
+  @override
+  String get homeMenu => 'হোম';
+
+  @override
+  String get qiblaShort => 'কিবলা';
+
+  @override
+  String get prayerTracker => 'নামাজ ট্র্যাকার';
+
+  @override
+  String get quranWordLearner => 'বাক্য শেখা';
+
+  @override
+  String get events => 'ইভেন্ট';
+
+  @override
+  String get fetchingLocation => 'আপনার অবস্থান নেওয়া হচ্ছে...';
+
+  @override
+  String get enableLocationServices =>
+      'কিবলার সঙ্গে মিলানোর জন্য লোকেশন পরিষেবা চালু করুন।';
+
+  @override
+  String get retryLabel => 'পুনরায় চেষ্টা করুন';
+
+  @override
+  String get qiblaCircleHint =>
+      'বৃত্তের মধ্যে দাঁড়ান, তীরকে কাবার সাথে মিলিয়ে নিন এবং শ্বাস ধীরে নিন।';
+
+  @override
+  String get qiblaAlignStep1 =>
+      'পা কাঁধ-প্রস্থে রেখে কিবা আইকনের দিকে দাঁড়ান।';
+
+  @override
+  String get qiblaAlignStep2 =>
+      'তীর আপনার বুকে সারিবদ্ধ না হওয়া পর্যন্ত ধীরে ধীরে ঘুরুন।';
+
+  @override
+  String get qiblaAlignStep3 =>
+      'কাঁধ শিথিল করুন, গভীর শ্বাস নিন এবং নিয়ত ঠিক করুন।';
+
+  @override
+  String get locationUnknown => 'অজানা অবস্থান';
+
+  @override
+  String coordinatesLabel(Object lat, Object lon) {
+    return 'অক্ষাংশ $lat, দ্রাঘিমাংশ $lon';
+  }
+
+  @override
+  String qiblaBearingLabel(Object degrees) {
+    return 'কিবলার দিক: উত্তর থেকে $degrees°';
+  }
+
+  @override
+  String get orientationSummary => 'অভিমুখ সংক্ষেপ';
+
+  @override
+  String get orientationUnknown => 'অভিমুখ এখনো নির্ধারিত হয়নি';
+
+  @override
+  String get distanceUnknown => 'দূরত্ব পাওয়া যায়নি';
+
+  @override
+  String qiblaDistanceLabel(Object kilometers) {
+    return 'কাবার দূরত্ব: $kilometers কিমি';
+  }
+
+  @override
+  String get quranLanguageLabel => 'পাঠের ভাষা';
+
+  @override
+  String get quranLoadError => 'এ মুহূর্তে সূরা তালিকা আনা গেল না।';
+
+  @override
+  String get quranEmptyLibrary => 'কোনো সূরা পাওয়া যায়নি।';
+
+  @override
+  String verseCountLabel(int count) {
+    return 'আয়াত: $count';
+  }
+
+  @override
+  String revelationPlaceLabel(Object place) {
+    return '$place এ অবতীর্ণ';
+  }
+
+  @override
+  String get quranDetailLoadError => 'সূরার বিস্তারিত লোড করা যায়নি।';
+
+  @override
+  String get quranDetailEmpty => 'এই সূরার জন্য প্রদর্শনের মতো আয়াত নেই।';
+
+  @override
+  String get wordByWordLabel => 'শব্দে শব্দে অনুবাদ';
+
+  @override
+  String get tafsirLabel => 'তাফসির';
+
+  @override
+  String get monthlyOverviewTitle => 'মাসিক নামাজের সারাংশ';
+
+  @override
+  String get monthlyOverviewCaption =>
+      'এই মাসে প্রতিটি নামাজ কতদিন পড়েছেন তার শতকরা হিসাব।';
+
+  @override
+  String get settingsAppearanceSection => 'রূপ';
+
+  @override
+  String get settingsGeneralSection => 'সাধারণ';
+
+  @override
+  String get settingsSupportSection => 'সহায়তা';
+
+  @override
+  String get notificationsLabel => 'নামাজ রিমাইন্ডার';
+
+  @override
+  String get notificationsDescription =>
+      'নামাজ ও জামাতের আগে স্মরণ করিয়ে দিন চালু করুন।';
+
+  @override
+  String get aboutUsSubtitle => 'দল ও স্বপ্ন সম্পর্কে জানুন।';
+
+  @override
+  String get rateThisAppSubtitle => 'একটি দ্রুত রিভিউ দিয়ে মতামত দিন।';
+
+  @override
+  String get rateThisAppError => 'স্টোর পেজ খোলা যায়নি। পরে আবার চেষ্টা করুন।';
+
+  @override
+  String get aboutHeadline => 'নামাজের মাধ্যমে হৃদয়ের সংযোগ';
+
+  @override
+  String get aboutDescription =>
+      'জমাত টাইম আধুনিক অভিজ্ঞতায় নামাজের সময়, নিকটবর্তী মসজিদ ও কমিউনিটি ইভেন্ট খুঁজে দেয়।';
+
+  @override
+  String get aboutMissionTitle => 'আমাদের লক্ষ্য';
+
+  @override
+  String get aboutMissionBody =>
+      'প্রতিটি মুসলিম যেন মসজিদের সাথে সংযুক্ত থাকে এবং জামাতে নামাজ মিস না করে—এই লক্ষ্যেই আমাদের কাজ।';
+
+  @override
+  String get aboutFeaturesTitle => 'আপনি যা পছন্দ করবেন';
+
+  @override
+  String get aboutFeaturePrayer =>
+      'দৈনিক নামাজ ট্র্যাক করুন এবং মাসিক অগ্রগতি দেখুন।';
+
+  @override
+  String get aboutFeatureCommunity =>
+      'এক নজরে নিকটবর্তী মসজিদ ও ইভেন্ট আবিষ্কার করুন।';
+
+  @override
+  String get aboutFeatureLearning =>
+      'অনুবাদ, তাফসির এবং শব্দে শব্দে অধ্যয়নের মাধ্যমে কুরআনের যাত্রা গভীর করুন।';
+
+  @override
+  String get aboutFeatureCompass =>
+      'এআই-নির্দেশিত কম্পাসে আত্মবিশ্বাস নিয়ে কিবলার মুখোমুখি হন।';
+
+  @override
+  String get aboutContactTitle => 'যোগাযোগে থাকুন';
+
+  @override
+  String get aboutContactBody =>
+      'support@jamattime.app এ আমাদের জানান। মতামত, গল্প কিংবা সালাম—সবাইকে স্বাগতম!';
+
+  @override
+  String get qiblaSourceTitle => 'দিকের উৎস';
+
+  @override
+  String get qiblaSourceLoading =>
+      'সঠিক দিক জানার জন্য আল আদহানকে জিজ্ঞেস করা হচ্ছে...';
+
+  @override
+  String qiblaSourceSuccess(Object degrees) {
+    return 'আল আদহান জানাচ্ছে দিক $degrees° (উত্তর থেকে)।';
+  }
+
+  @override
+  String qiblaSourceComparison(Object degrees) {
+    return 'যন্ত্রের হিসাবে দিক $degrees°।';
+  }
+
+  @override
+  String get qiblaSourceFallback =>
+      'আল আদহানের সাথে যোগাযোগ করা গেল না। যন্ত্রের হিসাব দেখানো হচ্ছে।';
+
+  @override
+  String get qiblaTipsTitle => 'সঠিকভাবে দাঁড়ানোর টিপস';
+
+  @override
+  String get quranLastReadLabel => 'শেষ পড়া';
+
+  @override
+  String get quranFavoritesLabel => 'পছন্দের সূরা';
+
+  @override
+  String get noDataLabel => 'কোনো নামাজের রেকর্ড নেই';
+
+  @override
+  String get trackerDateLabel => 'তারিখ';
 }

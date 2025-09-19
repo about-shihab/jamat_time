@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrayerTimesProvider extends ChangeNotifier {
-  Map<String, Map<String, String>>? _monthlyTimings; // Key: day (e.g., "01"), Value: daily timings
+  Map<String, Map<String, String>>?
+      _monthlyTimings; // Key: day (e.g., "01"), Value: daily timings
   bool _loading = false;
   String? _error;
 
@@ -13,6 +14,7 @@ class PrayerTimesProvider extends ChangeNotifier {
     final today = DateTime.now().day.toString().padLeft(2, '0');
     return _monthlyTimings![today];
   }
+
   bool get loading => _loading;
   String? get error => _error;
 
@@ -21,7 +23,8 @@ class PrayerTimesProvider extends ChangeNotifier {
   static const _cacheLatKey = 'monthly_prayer_times_lat';
   static const _cacheLngKey = 'monthly_prayer_times_lng';
 
-  Future<void> fetchMonthlyPrayerTimes(double lat, double lng, {int method = 5, bool forceRefresh = false}) async {
+  Future<void> fetchMonthlyPrayerTimes(double lat, double lng,
+      {int method = 5, bool forceRefresh = false}) async {
     _loading = true;
     _error = null;
     notifyListeners();
@@ -37,12 +40,21 @@ class PrayerTimesProvider extends ChangeNotifier {
       final cachedLat = prefs.getDouble(_cacheLatKey);
       final cachedLng = prefs.getDouble(_cacheLngKey);
 
-      if (cachedData != null && cachedTimestamp != null && cachedLat == lat && cachedLng == lng) {
-        final lastFetchDate = DateTime.fromMillisecondsSinceEpoch(cachedTimestamp);
+      if (cachedData != null &&
+          cachedTimestamp != null &&
+          cachedLat == lat &&
+          cachedLng == lng) {
+        final lastFetchDate =
+            DateTime.fromMillisecondsSinceEpoch(cachedTimestamp);
         // Check if cache is for the current month and not older than a day
-        if (lastFetchDate.month == currentMonth && lastFetchDate.year == currentYear && DateTime.now().difference(lastFetchDate).inHours < 24) {
+        if (lastFetchDate.month == currentMonth &&
+            lastFetchDate.year == currentYear &&
+            DateTime.now().difference(lastFetchDate).inHours < 24) {
           _monthlyTimings = (json.decode(cachedData) as Map<String, dynamic>)
-              .map((k, v) => MapEntry(k, (v as Map<String, dynamic>).map((k2, v2) => MapEntry(k2, v2.toString()))));
+              .map((k, v) => MapEntry(
+                  k,
+                  (v as Map<String, dynamic>)
+                      .map((k2, v2) => MapEntry(k2, v2.toString()))));
           _loading = false;
           notifyListeners();
           return;
@@ -52,7 +64,9 @@ class PrayerTimesProvider extends ChangeNotifier {
 
     // Fetch from API
     try {
-      final uri = Uri.parse('https://api.aladhan.com/v1/calendar/$currentYear/$currentMonth').replace(
+      final uri = Uri.parse(
+              'https://api.aladhan.com/v1/calendar/$currentYear/$currentMonth')
+          .replace(
         queryParameters: {
           'latitude': lat.toString(),
           'longitude': lng.toString(),
@@ -66,7 +80,10 @@ class PrayerTimesProvider extends ChangeNotifier {
         final cachedData = prefs.getString(_cacheKey);
         if (cachedData != null) {
           _monthlyTimings = (json.decode(cachedData) as Map<String, dynamic>)
-              .map((k, v) => MapEntry(k, (v as Map<String, dynamic>).map((k2, v2) => MapEntry(k2, v2.toString()))));
+              .map((k, v) => MapEntry(
+                  k,
+                  (v as Map<String, dynamic>)
+                      .map((k2, v2) => MapEntry(k2, v2.toString()))));
         }
         _loading = false;
         notifyListeners();
@@ -95,17 +112,20 @@ class PrayerTimesProvider extends ChangeNotifier {
 
       // Save to cache
       await prefs.setString(_cacheKey, json.encode(monthlyData));
-      await prefs.setInt(_cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
+      await prefs.setInt(
+          _cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
       await prefs.setDouble(_cacheLatKey, lat);
       await prefs.setDouble(_cacheLngKey, lng);
-
     } catch (e) {
       _error = e.toString();
       // Fallback to cache if API call fails
       final cachedData = prefs.getString(_cacheKey);
       if (cachedData != null) {
-        _monthlyTimings = (json.decode(cachedData) as Map<String, dynamic>)
-            .map((k, v) => MapEntry(k, (v as Map<String, dynamic>).map((k2, v2) => MapEntry(k2, v2.toString()))));
+        _monthlyTimings = (json.decode(cachedData) as Map<String, dynamic>).map(
+            (k, v) => MapEntry(
+                k,
+                (v as Map<String, dynamic>)
+                    .map((k2, v2) => MapEntry(k2, v2.toString()))));
       }
     } finally {
       _loading = false;

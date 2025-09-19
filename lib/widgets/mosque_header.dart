@@ -19,14 +19,16 @@ class MosqueHeader extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
+        border:
+            Border.all(color: Theme.of(context).primaryColor.withOpacity(0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             mosque.name,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
+            style:
+                Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 24),
           ),
           const SizedBox(height: 4),
           Text(

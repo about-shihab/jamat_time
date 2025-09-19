@@ -25,12 +25,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         'Isha': JamatTimeDetails(jamatTime: '08:05 PM'),
       },
     ),
-     Mosque(
+    Mosque(
       name: 'Anderkilla Shahi Mosque',
       address: 'Anderkilla, Chattogram',
       lastUpdatedAt: DateTime(2025, 8, 29, 20, 10),
       lastUpdatedBy: 'Admin',
-       jamatTimes: {
+      jamatTimes: {
         'Fajr': JamatTimeDetails(jamatTime: '05:00 AM'),
         'Dhuhr': JamatTimeDetails(jamatTime: '01:30 PM'),
         'Asr': JamatTimeDetails(jamatTime: '05:00 PM'),
@@ -53,11 +53,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           return Card(
             elevation: 2,
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: ListTile(
-              contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-              title: Text(mosque.name, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 17)),
-              subtitle: Text(mosque.address, style: Theme.of(context).textTheme.bodyMedium),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+              title: Text(mosque.name,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontSize: 17)),
+              subtitle: Text(mosque.address,
+                  style: Theme.of(context).textTheme.bodyMedium),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.pop(context, mosque),
             ),

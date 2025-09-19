@@ -23,7 +23,7 @@ class AuroraBackgroundPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = sqrt(size.width * size.width + size.height * size.height);
     final rect = Rect.fromCircle(center: center, radius: radius);
-      
+
     final paint = Paint()
       ..shader = RadialGradient(
         colors: colors,

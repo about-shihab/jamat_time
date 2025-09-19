@@ -43,9 +43,11 @@ class _TimelineBody extends StatelessWidget {
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor:
-                        completed ? Colors.green : (unlocked ? Colors.blue : Colors.grey),
-                    child: Text('${index + 1}', style: const TextStyle(color: Colors.white)),
+                    backgroundColor: completed
+                        ? Colors.green
+                        : (unlocked ? Colors.blue : Colors.grey),
+                    child: Text('${index + 1}',
+                        style: const TextStyle(color: Colors.white)),
                   ),
                   title: Text('Section ${index + 1} • ${words.length} words'),
                   subtitle: Column(
@@ -78,8 +80,11 @@ class _TimelineBody extends StatelessWidget {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => ChangeNotifierProvider.value(
-                                value: Provider.of<QuranLearningProvider>(context, listen: false),
-                                child: QuranWordLearningScreen(sectionIndex: index),
+                                value: Provider.of<QuranLearningProvider>(
+                                    context,
+                                    listen: false),
+                                child: QuranWordLearningScreen(
+                                    sectionIndex: index),
                               ),
                             ),
                           );
@@ -94,4 +99,3 @@ class _TimelineBody extends StatelessWidget {
     );
   }
 }
-

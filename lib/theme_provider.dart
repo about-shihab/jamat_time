@@ -24,10 +24,15 @@ class AppTheme {
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color.fromARGB(255, 156, 203, 206)),
+      titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Poppins',
+          color: Color.fromARGB(255, 156, 203, 206)),
     ),
     textTheme: TextTheme(
-      titleLarge: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      titleLarge:
+          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
       bodyLarge: TextStyle(color: Colors.white.withOpacity(0.9)),
       bodyMedium: TextStyle(color: Colors.white.withOpacity(0.7)),
     ),
@@ -51,10 +56,15 @@ class AppTheme {
       backgroundColor: Colors.transparent,
       elevation: 0,
       iconTheme: IconThemeData(color: Color(0xFF002729)),
-      titleTextStyle: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, fontFamily: 'Poppins', color: Color(0xFF002729)),
+      titleTextStyle: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Poppins',
+          color: Color(0xFF002729)),
     ),
     textTheme: const TextTheme(
-      titleLarge: TextStyle(color: Color(0xFF002729), fontWeight: FontWeight.bold),
+      titleLarge:
+          TextStyle(color: Color(0xFF002729), fontWeight: FontWeight.bold),
       bodyLarge: TextStyle(color: Color(0xFF002729)),
       bodyMedium: TextStyle(color: Colors.black54),
     ),

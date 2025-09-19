@@ -66,8 +66,9 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
     final total = questions.length;
 
     Future<void> submit() async {
-      final correct =
-          questions.where((e) => _answers[questions.indexOf(e)] == e.correct).length;
+      final correct = questions
+          .where((e) => _answers[questions.indexOf(e)] == e.correct)
+          .length;
       final pass = correct / total >= QuranLearningProvider.passThreshold;
       await showDialog(
         context: context,
@@ -87,7 +88,10 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
       }
     }
 
-    final isBn = Localizations.localeOf(context).languageCode.toLowerCase().startsWith('bn');
+    final isBn = Localizations.localeOf(context)
+        .languageCode
+        .toLowerCase()
+        .startsWith('bn');
     String t(String en, String bn) => isBn ? bn : en;
     return Scaffold(
       appBar: const CustomAppBar(),
@@ -113,8 +117,10 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                   // Progress text
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(t('Question ${_current + 1} of $total','প্রশ্ন ${_current + 1} / $total'),
-                         style: Theme.of(context).textTheme.titleSmall),
+                    child: Text(
+                        t('Question ${_current + 1} of $total',
+                            'প্রশ্ন ${_current + 1} / $total'),
+                        style: Theme.of(context).textTheme.titleSmall),
                   ),
                   // Question card
                   Card(
@@ -134,7 +140,7 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            t('What is the meaning of:','এর অর্থ কী:'),
+                            t('What is the meaning of:', 'এর অর্থ কী:'),
                             textAlign: TextAlign.center,
                             style: Theme.of(context)
                                 .textTheme
@@ -155,8 +161,9 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                           ),
                           const SizedBox(height: 8),
                           () {
-                            final code =
-                                Localizations.localeOf(context).languageCode.toLowerCase();
+                            final code = Localizations.localeOf(context)
+                                .languageCode
+                                .toLowerCase();
                             final isBn = code.startsWith('bn');
                             final t = isBn
                                 ? (q.word.bnTransliteration ?? '')
@@ -178,7 +185,9 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(t('Select the correct translation:','সঠিক অনুবাদ নির্বাচন করুন:'),
+                  Text(
+                      t('Select the correct translation:',
+                          'সঠিক অনুবাদ নির্বাচন করুন:'),
                       style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: 8),
                   for (final opt in q.options)
@@ -203,7 +212,7 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                               ? () => setState(() => _current -= 1)
                               : null,
                           icon: const Icon(Icons.chevron_left),
-                          label: Text(t('Previous','পূর্ববর্তী')),
+                          label: Text(t('Previous', 'পূর্ববর্তী')),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -219,7 +228,9 @@ class _QuranWordTestScreenState extends State<QuranWordTestScreen>
                           icon: Icon(_current < total - 1
                               ? Icons.chevron_right
                               : Icons.check_circle_outline),
-                          label: Text(_current < total - 1 ? t('Next','পরবর্তী') : t('Submit','জমা দিন')),
+                          label: Text(_current < total - 1
+                              ? t('Next', 'পরবর্তী')
+                              : t('Submit', 'জমা দিন')),
                         ),
                       ),
                     ],
@@ -239,7 +250,8 @@ class _OptionTile extends StatelessWidget {
   final String text;
   final bool selected;
   final VoidCallback onTap;
-  const _OptionTile({required this.text, required this.selected, required this.onTap});
+  const _OptionTile(
+      {required this.text, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +266,9 @@ class _OptionTile extends StatelessWidget {
               ? theme.colorScheme.primaryContainer
               : theme.colorScheme.surfaceVariant,
           border: Border.all(
-            color: selected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+            color: selected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outlineVariant,
             width: selected ? 2.0 : 1.0,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -268,7 +282,8 @@ class _OptionTile extends StatelessWidget {
               height: 22,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: selected ? theme.colorScheme.primary : Colors.transparent,
+                color:
+                    selected ? theme.colorScheme.primary : Colors.transparent,
                 border: Border.all(
                   color: selected
                       ? theme.colorScheme.primary
@@ -277,7 +292,8 @@ class _OptionTile extends StatelessWidget {
                 ),
               ),
               child: selected
-                  ? Icon(Icons.check, size: 16, color: theme.colorScheme.onPrimary)
+                  ? Icon(Icons.check,
+                      size: 16, color: theme.colorScheme.onPrimary)
                   : null,
             ),
             const SizedBox(width: 12),

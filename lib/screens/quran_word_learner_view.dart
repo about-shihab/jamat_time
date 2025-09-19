@@ -5,14 +5,14 @@ import 'package:jamat_time/providers/quran_learning_provider.dart';
 import 'package:jamat_time/widgets/aurora_background_painter.dart';
 import 'package:jamat_time/screens/quran_word_learning_screen.dart';
 
-class QuranView extends StatefulWidget {
-  const QuranView({super.key});
+class QuranWordLearnerView extends StatefulWidget {
+  const QuranWordLearnerView({super.key});
 
   @override
-  State<QuranView> createState() => _QuranViewState();
+  State<QuranWordLearnerView> createState() => _QuranWordLearnerViewState();
 }
 
-class _QuranViewState extends State<QuranView>
+class _QuranWordLearnerViewState extends State<QuranWordLearnerView>
     with SingleTickerProviderStateMixin {
   late final AnimationController _bgController;
 
@@ -37,7 +37,7 @@ class _QuranViewState extends State<QuranView>
       create: (_) => QuranLearningProvider()..load(),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(title: Text(l10n.quran)),
+        appBar: AppBar(title: Text(l10n.quranWordLearner)),
         body: Stack(
           children: [
             IgnorePointer(
@@ -60,7 +60,10 @@ class _QuranViewState extends State<QuranView>
                 if (sections == 0) {
                   return const Center(child: Text('No words available'));
                 }
-                final isBn = Localizations.localeOf(context).languageCode.toLowerCase().startsWith('bn');
+                final isBn = Localizations.localeOf(context)
+                    .languageCode
+                    .toLowerCase()
+                    .startsWith('bn');
                 String t(String en, String bn) => isBn ? bn : en;
                 return ListView.separated(
                   padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),
@@ -69,13 +72,16 @@ class _QuranViewState extends State<QuranView>
                   itemBuilder: (context, index) {
                     if (index == 0) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4.0, vertical: 8.0),
                         child: Text(
-                          t('Frequent Quran Words', 'কুরআনের বহুল ব্যবহৃত শব্দসমূহ'),
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).primaryColor,
-                              ),
+                          t('Frequent Quran Words',
+                              'কুরআনের বহুল ব্যবহৃত শব্দসমূহ'),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
                         ),
                       );
                     }
@@ -88,9 +94,13 @@ class _QuranViewState extends State<QuranView>
                       color: Theme.of(context).cardColor.withOpacity(0.8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              completed ? Colors.green : (unlocked ? Theme.of(context).colorScheme.primary : Colors.grey),
-                          child: Text('${i + 1}', style: const TextStyle(color: Colors.white)),
+                          backgroundColor: completed
+                              ? Colors.green
+                              : (unlocked
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey),
+                          child: Text('${i + 1}',
+                              style: const TextStyle(color: Colors.white)),
                         ),
                         title: Text(
                           isBn
@@ -101,13 +111,16 @@ class _QuranViewState extends State<QuranView>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 6),
-                            LinearProgressIndicator(value: completed ? 1 : progress),
+                            LinearProgressIndicator(
+                                value: completed ? 1 : progress),
                             const SizedBox(height: 6),
                             Text(completed
                                 ? t('Completed', 'সম্পন্ন')
                                 : unlocked
-                                    ? t('Tap to learn and take test', 'শেখার জন্য ট্যাপ করুন এবং পরীক্ষা দিন')
-                                    : t('Locked — complete previous section', 'লকড — আগের সেকশন সম্পন্ন করুন')),
+                                    ? t('Tap to learn and take test',
+                                        'শেখার জন্য ট্যাপ করুন এবং পরীক্ষা দিন')
+                                    : t('Locked — complete previous section',
+                                        'লকড — আগের সেকশন সম্পন্ন করুন')),
                           ],
                         ),
                         trailing: Icon(
@@ -126,9 +139,13 @@ class _QuranViewState extends State<QuranView>
                             ? () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => ChangeNotifierProvider.value(
-                                      value: Provider.of<QuranLearningProvider>(context, listen: false),
-                                      child: QuranWordLearningScreen(sectionIndex: i),
+                                    builder: (_) =>
+                                        ChangeNotifierProvider.value(
+                                      value: Provider.of<QuranLearningProvider>(
+                                          context,
+                                          listen: false),
+                                      child: QuranWordLearningScreen(
+                                          sectionIndex: i),
                                     ),
                                   ),
                                 );

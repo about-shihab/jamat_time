@@ -15,7 +15,8 @@ class PrayerTypeCache {
     if (raw != null) {
       try {
         final decoded = json.decode(raw) as Map<String, dynamic>;
-        _cache = decoded.map((k, v) => MapEntry(int.parse(k), Map<String, String>.from(v as Map)));
+        _cache = decoded.map((k, v) =>
+            MapEntry(int.parse(k), Map<String, String>.from(v as Map)));
         return;
       } catch (_) {}
     }
@@ -25,7 +26,8 @@ class PrayerTypeCache {
       return;
     }
     final client = Supabase.instance.client;
-    final rows = await client.from('prayer_type').select('id, name_en, name_bn');
+    final rows =
+        await client.from('prayer_type').select('id, name_en, name_bn');
     final map = <int, Map<String, String>>{};
     for (final r in rows) {
       final id = (r['id'] as num).toInt();
@@ -50,4 +52,3 @@ class PrayerTypeCache {
     return en.isNotEmpty ? en : bn;
   }
 }
-

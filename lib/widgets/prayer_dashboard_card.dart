@@ -29,7 +29,11 @@ class PrayerDashboardCard extends StatelessWidget {
             // Prayer Name
             Expanded(
               flex: 2,
-              child: Text(prayerName, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 18)),
+              child: Text(prayerName,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontSize: 18)),
             ),
             // Times
             Expanded(
@@ -38,14 +42,19 @@ class PrayerDashboardCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(jamatTime, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 22, color: Theme.of(context).primaryColor)),
-                  Text(prayerTimeRange, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(jamatTime,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontSize: 22, color: Theme.of(context).primaryColor)),
+                  Text(prayerTimeRange,
+                      style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
             // Alarm Button
             IconButton(
-              icon: Icon(isAlarmSet ? Icons.notifications_active : Icons.notifications_none_outlined),
+              icon: Icon(isAlarmSet
+                  ? Icons.notifications_active
+                  : Icons.notifications_none_outlined),
               color: isAlarmSet ? Theme.of(context).hintColor : Colors.grey,
               onPressed: onAlarmPressed,
             ),

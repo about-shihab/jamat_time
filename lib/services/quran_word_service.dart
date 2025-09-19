@@ -84,4 +84,3 @@ class QuranWordService {
     return list;
   }
 }
-

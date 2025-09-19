@@ -451,6 +451,360 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Isha'**
   String get prayerIsha;
+
+  /// No description provided for @homeMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get homeMenu;
+
+  /// No description provided for @qiblaShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla'**
+  String get qiblaShort;
+
+  /// No description provided for @prayerTracker.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer Tracker'**
+  String get prayerTracker;
+
+  /// No description provided for @quranWordLearner.
+  ///
+  /// In en, this message translates to:
+  /// **'Word Learner'**
+  String get quranWordLearner;
+
+  /// No description provided for @events.
+  ///
+  /// In en, this message translates to:
+  /// **'Events'**
+  String get events;
+
+  /// No description provided for @fetchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting your location...'**
+  String get fetchingLocation;
+
+  /// No description provided for @enableLocationServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable location services to align with the Qibla.'**
+  String get enableLocationServices;
+
+  /// No description provided for @retryLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryLabel;
+
+  /// No description provided for @qiblaCircleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Stand within the circle, align the arrow with the Kaaba, and steady your breathing.'**
+  String get qiblaCircleHint;
+
+  /// No description provided for @qiblaAlignStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Place your feet shoulder-width apart and face the Kaaba icon.'**
+  String get qiblaAlignStep1;
+
+  /// No description provided for @qiblaAlignStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate gently until the arrow lines up with your chest.'**
+  String get qiblaAlignStep2;
+
+  /// No description provided for @qiblaAlignStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Relax your shoulders, breathe in, and set your intention.'**
+  String get qiblaAlignStep3;
+
+  /// No description provided for @locationUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown location'**
+  String get locationUnknown;
+
+  /// No description provided for @coordinatesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Lat {lat}, Lon {lon}'**
+  String coordinatesLabel(Object lat, Object lon);
+
+  /// No description provided for @qiblaBearingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Qibla bearing: {degrees}° from true north'**
+  String qiblaBearingLabel(Object degrees);
+
+  /// No description provided for @orientationSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation summary'**
+  String get orientationSummary;
+
+  /// No description provided for @orientationUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Orientation not available yet'**
+  String get orientationUnknown;
+
+  /// No description provided for @distanceUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unavailable'**
+  String get distanceUnknown;
+
+  /// No description provided for @qiblaDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance to Kaaba: {kilometers} km'**
+  String qiblaDistanceLabel(Object kilometers);
+
+  /// No description provided for @quranLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recitation language'**
+  String get quranLanguageLabel;
+
+  /// No description provided for @quranLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load the surah list right now.'**
+  String get quranLoadError;
+
+  /// No description provided for @quranEmptyLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'No surahs available.'**
+  String get quranEmptyLibrary;
+
+  /// No description provided for @verseCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Verses: {count}'**
+  String verseCountLabel(int count);
+
+  /// No description provided for @revelationPlaceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revealed in {place}'**
+  String revelationPlaceLabel(Object place);
+
+  /// No description provided for @quranDetailLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load surah details.'**
+  String get quranDetailLoadError;
+
+  /// No description provided for @quranDetailEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No verses to display for this surah.'**
+  String get quranDetailEmpty;
+
+  /// No description provided for @wordByWordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Word-by-word translation'**
+  String get wordByWordLabel;
+
+  /// No description provided for @tafsirLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tafsir'**
+  String get tafsirLabel;
+
+  /// No description provided for @monthlyOverviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly prayed overview'**
+  String get monthlyOverviewTitle;
+
+  /// No description provided for @monthlyOverviewCaption.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentages reflect how many days you marked each prayer for this month.'**
+  String get monthlyOverviewCaption;
+
+  /// No description provided for @settingsAppearanceSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearanceSection;
+
+  /// No description provided for @settingsGeneralSection.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get settingsGeneralSection;
+
+  /// No description provided for @settingsSupportSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Support'**
+  String get settingsSupportSection;
+
+  /// No description provided for @notificationsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Prayer reminders'**
+  String get notificationsLabel;
+
+  /// No description provided for @notificationsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable reminders for upcoming prayers and jamat times.'**
+  String get notificationsDescription;
+
+  /// No description provided for @aboutUsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Learn more about the team and vision.'**
+  String get aboutUsSubtitle;
+
+  /// No description provided for @rateThisAppSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your feedback with a quick review.'**
+  String get rateThisAppSubtitle;
+
+  /// No description provided for @rateThisAppError.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t open the store page. Please try again later.'**
+  String get rateThisAppError;
+
+  /// No description provided for @aboutHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting hearts through prayer'**
+  String get aboutHeadline;
+
+  /// No description provided for @aboutDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Jamat Time helps you discover prayer times, nearby masjids, and community events with a modern experience.'**
+  String get aboutDescription;
+
+  /// No description provided for @aboutMissionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Mission'**
+  String get aboutMissionTitle;
+
+  /// No description provided for @aboutMissionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'To empower every Muslim to stay connected with the masjid and never miss a congregational prayer.'**
+  String get aboutMissionBody;
+
+  /// No description provided for @aboutFeaturesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What you\'ll love'**
+  String get aboutFeaturesTitle;
+
+  /// No description provided for @aboutFeaturePrayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Track daily prayers and monitor your monthly progress.'**
+  String get aboutFeaturePrayer;
+
+  /// No description provided for @aboutFeatureCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Discover community events and nearby masjids at a glance.'**
+  String get aboutFeatureCommunity;
+
+  /// No description provided for @aboutFeatureLearning.
+  ///
+  /// In en, this message translates to:
+  /// **'Deepen your Quran journey with translations, tafsir, and word-by-word study.'**
+  String get aboutFeatureLearning;
+
+  /// No description provided for @aboutFeatureCompass.
+  ///
+  /// In en, this message translates to:
+  /// **'Face the Qibla confidently with a guided compass experience.'**
+  String get aboutFeatureCompass;
+
+  /// No description provided for @aboutContactTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay connected'**
+  String get aboutContactTitle;
+
+  /// No description provided for @aboutContactBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'d love to hear from you at support@jamattime.app. Send feedback, stories, or salaam!'**
+  String get aboutContactBody;
+
+  /// No description provided for @qiblaSourceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction source'**
+  String get qiblaSourceTitle;
+
+  /// No description provided for @qiblaSourceLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Contacting Al Adhan for a precise bearing...'**
+  String get qiblaSourceLoading;
+
+  /// No description provided for @qiblaSourceSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Al Adhan reports a bearing of {degrees}° from true north.'**
+  String qiblaSourceSuccess(Object degrees);
+
+  /// No description provided for @qiblaSourceComparison.
+  ///
+  /// In en, this message translates to:
+  /// **'Device fallback bearing: {degrees}°.'**
+  String qiblaSourceComparison(Object degrees);
+
+  /// No description provided for @qiblaSourceFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach Al Adhan. Using the device-calculated direction instead.'**
+  String get qiblaSourceFallback;
+
+  /// No description provided for @qiblaTipsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Alignment tips'**
+  String get qiblaTipsTitle;
+
+  /// No description provided for @quranLastReadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Last read'**
+  String get quranLastReadLabel;
+
+  /// No description provided for @quranFavoritesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite surahs'**
+  String get quranFavoritesLabel;
+
+  /// No description provided for @noDataLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'No prayer data yet'**
+  String get noDataLabel;
+
+  /// No description provided for @trackerDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get trackerDateLabel;
 }
 
 class _AppLocalizationsDelegate

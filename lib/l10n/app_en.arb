@@ -75,10 +75,107 @@
   "chattogram": "Chattogram",
   "chattogramBangladesh": "Chattogram, Bangladesh",
   "rescanNearby": "Rescan Nearby Mosques",
-  "generalPrayerSchedule": "General Prayer Schedule"
-  ,"prayerFajr": "Fajr"
-  ,"prayerDhuhr": "Dhuhr"
-  ,"prayerAsr": "Asr"
-  ,"prayerMaghrib": "Maghrib"
-  ,"prayerIsha": "Isha"
+  "generalPrayerSchedule": "General Prayer Schedule",
+  "prayerFajr": "Fajr",
+  "prayerDhuhr": "Dhuhr",
+  "prayerAsr": "Asr",
+  "prayerMaghrib": "Maghrib",
+  "prayerIsha": "Isha",
+  "homeMenu": "Home",
+  "qiblaShort": "Qibla",
+  "prayerTracker": "Prayer Tracker",
+  "quranWordLearner": "Word Learner",
+  "events": "Events",
+  "fetchingLocation": "Getting your location...",
+  "enableLocationServices": "Enable location services to align with the Qibla.",
+  "retryLabel": "Retry",
+  "qiblaCircleHint": "Stand within the circle, align the arrow with the Kaaba, and steady your breathing.",
+  "qiblaAlignStep1": "Place your feet shoulder-width apart and face the Kaaba icon.",
+  "qiblaAlignStep2": "Rotate gently until the arrow lines up with your chest.",
+  "qiblaAlignStep3": "Relax your shoulders, breathe in, and set your intention.",
+  "locationUnknown": "Unknown location",
+  "coordinatesLabel": "Lat {lat}, Lon {lon}",
+  "qiblaBearingLabel": "Qibla bearing: {degrees}° from true north",
+  "orientationSummary": "Orientation summary",
+  "orientationUnknown": "Orientation not available yet",
+  "distanceUnknown": "Distance unavailable",
+  "qiblaDistanceLabel": "Distance to Kaaba: {kilometers} km",
+  "quranLanguageLabel": "Recitation language",
+  "quranLoadError": "We couldn't load the surah list right now.",
+  "quranEmptyLibrary": "No surahs available.",
+  "verseCountLabel": "Verses: {count}",
+  "revelationPlaceLabel": "Revealed in {place}",
+  "quranDetailLoadError": "Unable to load surah details.",
+  "quranDetailEmpty": "No verses to display for this surah.",
+  "wordByWordLabel": "Word-by-word translation",
+  "tafsirLabel": "Tafsir",
+  "monthlyOverviewTitle": "Monthly prayed overview",
+  "monthlyOverviewCaption": "Percentages reflect how many days you marked each prayer for this month.",
+  "settingsAppearanceSection": "Appearance",
+  "settingsGeneralSection": "General",
+  "settingsSupportSection": "Support",
+  "notificationsLabel": "Prayer reminders",
+  "notificationsDescription": "Enable reminders for upcoming prayers and jamat times.",
+  "aboutUsSubtitle": "Learn more about the team and vision.",
+  "rateThisAppSubtitle": "Share your feedback with a quick review.",
+  "rateThisAppError": "We couldn't open the store page. Please try again later.",
+  "aboutHeadline": "Connecting hearts through prayer",
+  "aboutDescription": "Jamat Time helps you discover prayer times, nearby masjids, and community events with a modern experience.",
+  "aboutMissionTitle": "Our Mission",
+  "aboutMissionBody": "To empower every Muslim to stay connected with the masjid and never miss a congregational prayer.",
+  "aboutFeaturesTitle": "What you'll love",
+  "aboutFeaturePrayer": "Track daily prayers and monitor your monthly progress.",
+  "aboutFeatureCommunity": "Discover community events and nearby masjids at a glance.",
+  "aboutFeatureLearning": "Deepen your Quran journey with translations, tafsir, and word-by-word study.",
+  "aboutFeatureCompass": "Face the Qibla confidently with a guided compass experience.",
+  "aboutContactTitle": "Stay connected",
+  "aboutContactBody": "We'd love to hear from you at support@jamattime.app. Send feedback, stories, or salaam!",
+  "@coordinatesLabel": {
+    "placeholders": {
+      "lat": {},
+      "lon": {}
+    }
+  },
+  "@qiblaBearingLabel": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "@qiblaDistanceLabel": {
+    "placeholders": {
+      "kilometers": {}
+    }
+  },
+  "@verseCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@revelationPlaceLabel": {
+    "placeholders": {
+      "place": {}
+    }
+  },
+  "qiblaSourceTitle": "Direction source",
+  "qiblaSourceLoading": "Contacting Al Adhan for a precise bearing...",
+  "qiblaSourceSuccess": "Al Adhan reports a bearing of {degrees}° from true north.",
+  "qiblaSourceComparison": "Device fallback bearing: {degrees}°.",
+  "qiblaSourceFallback": "Could not reach Al Adhan. Using the device-calculated direction instead.",
+  "qiblaTipsTitle": "Alignment tips",
+  "@qiblaSourceSuccess": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "@qiblaSourceComparison": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "quranLastReadLabel": "Last read",
+  "quranFavoritesLabel": "Favorite surahs",
+  "noDataLabel": "No prayer data yet",
+  "trackerDateLabel": "Date"
 }

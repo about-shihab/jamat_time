@@ -23,4 +23,9 @@ class AppConfig {
     'MASJIDNEAR_API_BASE',
     defaultValue: 'https://api.masjidnear.me/v1/masjids/search',
   );
+
+  static const appReviewUrl = String.fromEnvironment(
+    'APP_REVIEW_URL',
+    defaultValue: 'https://play.google.com/store/apps/details?id=jamat.time',
+  );
 }

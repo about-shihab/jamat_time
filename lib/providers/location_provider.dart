@@ -112,11 +112,14 @@ class LocationProvider extends ChangeNotifier {
       if (pos != null) {
         _position = pos;
         try {
-          final placemarks = await geo.placemarkFromCoordinates(pos.latitude, pos.longitude);
+          final placemarks =
+              await geo.placemarkFromCoordinates(pos.latitude, pos.longitude);
           if (placemarks.isNotEmpty) {
             final p = placemarks.first;
             // Prefer district (subAdministrativeArea) for app bar, fallback to locality
-            _district = (p.subAdministrativeArea?.isNotEmpty == true) ? p.subAdministrativeArea : null;
+            _district = (p.subAdministrativeArea?.isNotEmpty == true)
+                ? p.subAdministrativeArea
+                : null;
             _city = (p.locality?.isNotEmpty == true) ? p.locality : _district;
             _country = p.country;
           }
@@ -127,8 +130,10 @@ class LocationProvider extends ChangeNotifier {
             await prefs.setDouble('last_loc_lat', pos.latitude);
             await prefs.setDouble('last_loc_lon', pos.longitude);
             if (_city != null) await prefs.setString('last_loc_city', _city!);
-            if (_district != null) await prefs.setString('last_loc_district', _district!);
-            if (_country != null) await prefs.setString('last_loc_country', _country!);
+            if (_district != null)
+              await prefs.setString('last_loc_district', _district!);
+            if (_country != null)
+              await prefs.setString('last_loc_country', _country!);
           } catch (_) {}
         } catch (_) {}
       } else {

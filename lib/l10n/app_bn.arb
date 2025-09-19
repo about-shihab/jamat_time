@@ -75,10 +75,107 @@
   "chattogram": "চট্টগ্রাম",
   "chattogramBangladesh": "চট্টগ্রাম, বাংলাদেশ",
   "rescanNearby": "কাছাকাছি মসজিদ পুনঃস্ক্যান",
-  "generalPrayerSchedule": "সাধারণ নামাজের সময়সূচি"
-  ,"prayerFajr": "ফজর"
-  ,"prayerDhuhr": "যোহর"
-  ,"prayerAsr": "আসর"
-  ,"prayerMaghrib": "মাগরিব"
-  ,"prayerIsha": "ইশা"
+  "generalPrayerSchedule": "সাধারণ নামাজের সময়সূচি",
+  "prayerFajr": "ফজর",
+  "prayerDhuhr": "যোহর",
+  "prayerAsr": "আসর",
+  "prayerMaghrib": "মাগরিব",
+  "prayerIsha": "ইশা",
+  "homeMenu": "হোম",
+  "qiblaShort": "কিবলা",
+  "prayerTracker": "নামাজ ট্র্যাকার",
+  "quranWordLearner": "বাক্য শেখা",
+  "events": "ইভেন্ট",
+  "fetchingLocation": "আপনার অবস্থান নেওয়া হচ্ছে...",
+  "enableLocationServices": "কিবলার সঙ্গে মিলানোর জন্য লোকেশন পরিষেবা চালু করুন।",
+  "retryLabel": "পুনরায় চেষ্টা করুন",
+  "qiblaCircleHint": "বৃত্তের মধ্যে দাঁড়ান, তীরকে কাবার সাথে মিলিয়ে নিন এবং শ্বাস ধীরে নিন।",
+  "qiblaAlignStep1": "পা কাঁধ-প্রস্থে রেখে কিবা আইকনের দিকে দাঁড়ান।",
+  "qiblaAlignStep2": "তীর আপনার বুকে সারিবদ্ধ না হওয়া পর্যন্ত ধীরে ধীরে ঘুরুন।",
+  "qiblaAlignStep3": "কাঁধ শিথিল করুন, গভীর শ্বাস নিন এবং নিয়ত ঠিক করুন।",
+  "locationUnknown": "অজানা অবস্থান",
+  "coordinatesLabel": "অক্ষাংশ {lat}, দ্রাঘিমাংশ {lon}",
+  "qiblaBearingLabel": "কিবলার দিক: উত্তর থেকে {degrees}°",
+  "orientationSummary": "অভিমুখ সংক্ষেপ",
+  "orientationUnknown": "অভিমুখ এখনো নির্ধারিত হয়নি",
+  "distanceUnknown": "দূরত্ব পাওয়া যায়নি",
+  "qiblaDistanceLabel": "কাবার দূরত্ব: {kilometers} কিমি",
+  "quranLanguageLabel": "পাঠের ভাষা",
+  "quranLoadError": "এ মুহূর্তে সূরা তালিকা আনা গেল না।",
+  "quranEmptyLibrary": "কোনো সূরা পাওয়া যায়নি।",
+  "verseCountLabel": "আয়াত: {count}",
+  "revelationPlaceLabel": "{place} এ অবতীর্ণ",
+  "quranDetailLoadError": "সূরার বিস্তারিত লোড করা যায়নি।",
+  "quranDetailEmpty": "এই সূরার জন্য প্রদর্শনের মতো আয়াত নেই।",
+  "wordByWordLabel": "শব্দে শব্দে অনুবাদ",
+  "tafsirLabel": "তাফসির",
+  "monthlyOverviewTitle": "মাসিক নামাজের সারাংশ",
+  "monthlyOverviewCaption": "এই মাসে প্রতিটি নামাজ কতদিন পড়েছেন তার শতকরা হিসাব।",
+  "settingsAppearanceSection": "রূপ",
+  "settingsGeneralSection": "সাধারণ",
+  "settingsSupportSection": "সহায়তা",
+  "notificationsLabel": "নামাজ রিমাইন্ডার",
+  "notificationsDescription": "নামাজ ও জামাতের আগে স্মরণ করিয়ে দিন চালু করুন।",
+  "aboutUsSubtitle": "দল ও স্বপ্ন সম্পর্কে জানুন।",
+  "rateThisAppSubtitle": "একটি দ্রুত রিভিউ দিয়ে মতামত দিন।",
+  "rateThisAppError": "স্টোর পেজ খোলা যায়নি। পরে আবার চেষ্টা করুন।",
+  "aboutHeadline": "নামাজের মাধ্যমে হৃদয়ের সংযোগ",
+  "aboutDescription": "জমাত টাইম আধুনিক অভিজ্ঞতায় নামাজের সময়, নিকটবর্তী মসজিদ ও কমিউনিটি ইভেন্ট খুঁজে দেয়।",
+  "aboutMissionTitle": "আমাদের লক্ষ্য",
+  "aboutMissionBody": "প্রতিটি মুসলিম যেন মসজিদের সাথে সংযুক্ত থাকে এবং জামাতে নামাজ মিস না করে—এই লক্ষ্যেই আমাদের কাজ।",
+  "aboutFeaturesTitle": "আপনি যা পছন্দ করবেন",
+  "aboutFeaturePrayer": "দৈনিক নামাজ ট্র্যাক করুন এবং মাসিক অগ্রগতি দেখুন।",
+  "aboutFeatureCommunity": "এক নজরে নিকটবর্তী মসজিদ ও ইভেন্ট আবিষ্কার করুন।",
+  "aboutFeatureLearning": "অনুবাদ, তাফসির এবং শব্দে শব্দে অধ্যয়নের মাধ্যমে কুরআনের যাত্রা গভীর করুন।",
+  "aboutFeatureCompass": "এআই-নির্দেশিত কম্পাসে আত্মবিশ্বাস নিয়ে কিবলার মুখোমুখি হন।",
+  "aboutContactTitle": "যোগাযোগে থাকুন",
+  "aboutContactBody": "support@jamattime.app এ আমাদের জানান। মতামত, গল্প কিংবা সালাম—সবাইকে স্বাগতম!",
+  "@coordinatesLabel": {
+    "placeholders": {
+      "lat": {},
+      "lon": {}
+    }
+  },
+  "@qiblaBearingLabel": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "@qiblaDistanceLabel": {
+    "placeholders": {
+      "kilometers": {}
+    }
+  },
+  "@verseCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@revelationPlaceLabel": {
+    "placeholders": {
+      "place": {}
+    }
+  },
+  "qiblaSourceTitle": "দিকের উৎস",
+  "qiblaSourceLoading": "সঠিক দিক জানার জন্য আল আদহানকে জিজ্ঞেস করা হচ্ছে...",
+  "qiblaSourceSuccess": "আল আদহান জানাচ্ছে দিক {degrees}° (উত্তর থেকে)।",
+  "qiblaSourceComparison": "যন্ত্রের হিসাবে দিক {degrees}°।",
+  "qiblaSourceFallback": "আল আদহানের সাথে যোগাযোগ করা গেল না। যন্ত্রের হিসাব দেখানো হচ্ছে।",
+  "qiblaTipsTitle": "সঠিকভাবে দাঁড়ানোর টিপস",
+  "@qiblaSourceSuccess": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "@qiblaSourceComparison": {
+    "placeholders": {
+      "degrees": {}
+    }
+  },
+  "quranLastReadLabel": "শেষ পড়া",
+  "quranFavoritesLabel": "পছন্দের সূরা",
+  "noDataLabel": "কোনো নামাজের রেকর্ড নেই",
+  "trackerDateLabel": "তারিখ"
 }

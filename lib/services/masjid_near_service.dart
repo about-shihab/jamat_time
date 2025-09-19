@@ -41,7 +41,8 @@ class MasjidNearPlace {
         'fa': femaleAllowed,
       };
 
-  static MasjidNearPlace fromCacheJson(Map<String, dynamic> e) => MasjidNearPlace(
+  static MasjidNearPlace fromCacheJson(Map<String, dynamic> e) =>
+      MasjidNearPlace(
         supabaseId: (e['id'] as num?)?.toInt(),
         name: (e['name'] ?? 'Mosque').toString(),
         address: (e['address'] ?? '').toString(),
@@ -118,14 +119,29 @@ class MasjidNearService {
   }
 
   // Holds ID mappings fetched/created in Supabase for later linking
-  static Future<({Map<String, int> byGpid, Map<String, int> byProviderId, Map<String, bool> femaleByGpid, Map<String, bool> femaleByProviderId})>
-      syncToSupabaseNoUpdate(List<MasjidNearPlace> places) async {
+  static Future<
+      ({
+        Map<String, int> byGpid,
+        Map<String, int> byProviderId,
+        Map<String, bool> femaleByGpid,
+        Map<String, bool> femaleByProviderId
+      })> syncToSupabaseNoUpdate(List<MasjidNearPlace> places) async {
     // If Supabase not configured, skip
     if (AppConfig.supabaseUrl.isEmpty || AppConfig.supabaseAnonKey.isEmpty) {
-      return (byGpid: <String, int>{}, byProviderId: <String, int>{}, femaleByGpid: <String, bool>{}, femaleByProviderId: <String, bool>{});
+      return (
+        byGpid: <String, int>{},
+        byProviderId: <String, int>{},
+        femaleByGpid: <String, bool>{},
+        femaleByProviderId: <String, bool>{}
+      );
     }
     if (places.isEmpty) {
-      return (byGpid: <String, int>{}, byProviderId: <String, int>{}, femaleByGpid: <String, bool>{}, femaleByProviderId: <String, bool>{});
+      return (
+        byGpid: <String, int>{},
+        byProviderId: <String, int>{},
+        femaleByGpid: <String, bool>{},
+        femaleByProviderId: <String, bool>{}
+      );
     }
     final client = Supabase.instance.client;
 
@@ -251,7 +267,12 @@ class MasjidNearService {
       } catch (_) {}
     }
 
-    return (byGpid: byGpid, byProviderId: byProviderId, femaleByGpid: femaleByGpid, femaleByProviderId: femaleByProviderId);
+    return (
+      byGpid: byGpid,
+      byProviderId: byProviderId,
+      femaleByGpid: femaleByGpid,
+      femaleByProviderId: femaleByProviderId
+    );
   }
 }
 

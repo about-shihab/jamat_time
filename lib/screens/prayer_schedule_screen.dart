@@ -33,9 +33,13 @@ class PrayerScheduleScreen extends StatelessWidget {
                   color: const Color(0xFF1D1E33),
                   margin: const EdgeInsets.symmetric(vertical: 8),
                   child: ListTile(
-                    leading: const Icon(Icons.timer_outlined, color: Colors.tealAccent),
-                    title: Text(prayerName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    trailing: Text(prayerTime, style: const TextStyle(fontSize: 16, color: Colors.white)),
+                    leading: const Icon(Icons.timer_outlined,
+                        color: Colors.tealAccent),
+                    title: Text(prayerName,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
+                    trailing: Text(prayerTime,
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.white)),
                   ),
                 );
               },

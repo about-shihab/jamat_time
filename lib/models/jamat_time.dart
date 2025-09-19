@@ -64,5 +64,5 @@ class JamatTime {
       };
 }
 
-String _toDate(DateTime d) => DateTime(d.year, d.month, d.day).toIso8601String();
-
+String _toDate(DateTime d) =>
+    DateTime(d.year, d.month, d.day).toIso8601String();

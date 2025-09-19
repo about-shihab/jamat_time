@@ -58,7 +58,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         ),
         child: Center(
           child: Text(title,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
         ),
       ),
     );
@@ -105,10 +106,14 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                         style: TextStyle(fontSize: 16, color: Colors.grey)),
                     const SizedBox(height: 50),
                     _buildLanguageButton(
-                        context: context, title: 'English', locale: const Locale('en')),
+                        context: context,
+                        title: 'English',
+                        locale: const Locale('en')),
                     const SizedBox(height: 20),
                     _buildLanguageButton(
-                        context: context, title: 'বাংলা', locale: const Locale('bn')),
+                        context: context,
+                        title: 'বাংলা',
+                        locale: const Locale('bn')),
                   ],
                 ),
               ),
